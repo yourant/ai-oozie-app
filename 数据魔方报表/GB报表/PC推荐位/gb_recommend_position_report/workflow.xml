@@ -1,41 +1,41 @@
-<workflow-app name="rewrite_zaful_app_recommend_report-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="rewrite_zaful_app_recommend_report_hive" />
-	    <action name="rewrite_zaful_app_recommend_report_hive">
+<workflow-app name="gb_recommend_position_report-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="gb_recommend_position_report_hive" />
+	    <action name="gb_recommend_position_report_hive">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${jobTracker}</job-tracker>
             <name-node>${nameNode}</name-node>
             <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
             <configuration>
                 <property>
-					<name>oozie.use.system.libpath</name>
-					<value>true</value>
-				</property>
-				<property>
+									<name>oozie.use.system.libpath</name>
+									<value>true</value>
+								</property>
+								<property>
                    <name>mapred.job.queue.name</name>
                    <value>${queueName}</value>
                 </property>
-				<property>
-				  <name>YEAR</name>
-				  <value>${YEAR}</value>
-				</property>
-				<property>
-				  <name>MONTH</name>
-				  <value>${MONTH}</value>
-				</property>
-				<property>
-				  <name>DAY</name>
-				  <value>${DAY}</value>
-				</property>
-				<property>
-				  <name>ADD_TIME</name>
-				  <value>${ADD_TIME}</value>
-				</property>
-				<property>
-				  <name>ADD_TIME_W</name>
-				  <value>${ADD_TIME_W}</value>
-				</property>
+								<property>
+									<name>YEAR</name>
+									<value>${YEAR}</value>
+								</property>
+								<property>
+									<name>MONTH</name>
+									<value>${MONTH}</value>
+								</property>
+								<property>
+									<name>DAY</name>
+									<value>${DAY}</value>
+								</property>
+								<property>
+									<name>ADD_TIME</name>
+									<value>${ADD_TIME}</value>
+								</property>
+								<property>
+									<name>ADD_TIME_W</name>
+									<value>${ADD_TIME_W}</value>
+								</property>
             </configuration>
-            <script>rewrite_zaful_app_recommend_report.q</script>
+            <script>gb_recommend_position_report.q</script>
 			 <param>YEAR=${YEAR}</param>
 			 <param>MONTH=${MONTH}</param>
 			 <param>DAY=${DAY}</param>
@@ -45,7 +45,6 @@
         <ok to="data_push"/>
         <error to="failed_mail"/>
     </action> 
-		
    <action name="data_push">
         <sqoop xmlns="uri:oozie:sqoop-action:0.2">
             <job-tracker>${jobTracker}</job-tracker>
@@ -75,12 +74,12 @@
             <arg>${db_user}</arg>
             <arg>--password</arg>
             <arg>${db_password}</arg>
-			      <arg>--table</arg>
-            <arg>rewrite_zaful_app_recommend_report</arg>
+		      	<arg>--table</arg>
+            <arg>apl_gb_recommend_position_report</arg>
             <arg>--columns</arg>
-            <arg>pv,uv,exp_num,sku_uv,click_num,click_uv,exp_click_ratio,user_click_ratio,cart_num,cart_uv,sku_cart_ratio,user_cart_ratio,order_sku_num,order_uv,sku_order_ratio,user_order_ratio,purchase_num,  pay_uv,pay_amount,sku_purchase_ratio,user_purchase_ratio,collect_uv,collect_num,platform,recommend_position,position_name,add_time</arg>
+            <arg>pv,uv,exp_num,click_num,exp_click_ratio,cart_num,cart_ratio,order_num,conversion_ratio,purchase_num,pay_amount,purchase_ratio,total_conversion_ratio,collect_num,platform,recommend_position,position_name,glb_dc,country,add_time</arg>
             <arg>--export-dir</arg>
-            <arg>/user/hive/warehouse/dw_zaful_recommend.db/rewrite_zaful_app_recommend_report_exp</arg>
+            <arg>/user/hive/warehouse/dw_gearbest_report.db/gb_recommend_position_exp</arg>
             <arg>--input-null-string</arg>
             <arg>\\N</arg>
             <arg>--input-null-non-string</arg>
@@ -90,7 +89,7 @@
             <arg>--lines-terminated-by</arg>
             <arg>\n</arg>
             <arg>-m</arg>
-			      <arg>1</arg>
+		        <arg>1</arg>
         </sqoop>
         <ok to="end"/>
         <error to="failed_mail"/>
@@ -98,9 +97,9 @@
   
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
-			<to>wuchao@globalegrow.com</to>
-			<subject>rewrite_zaful_app_recommend_report-wf failed</subject>
-			<body>rewrite_zaful_app_recommend_report-wf daily stat failed!
+			<to>zhanrui@globalegrow.com</to>
+			<subject>gb_recommend_position_report-wf failed</subject>
+			<body>gb_recommend_position_report-wf daily stat failed!
                   Stat DATE:${timestamp()},
                   Error message:[${wf:errorMessage(wf:lastErrorNode())}].
             </body>
