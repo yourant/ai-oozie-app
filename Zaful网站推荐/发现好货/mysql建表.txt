@@ -1,0 +1,52 @@
+CREATE TABLE IF NOT EXISTS zaful_app_recommend_item_wuc_report_exp(
+id                        INT primary key not null auto_increment    COMMENT "自增主键",
+pv_banner                        INT            COMMENT "页面PV",
+uv_banner                        INT            COMMENT "页面UV",
+position_click_num_banner          INT            COMMENT "坑位曝光",
+position_uv_banner               INT            COMMENT "坑位uv",
+pv                        INT            COMMENT "页面PV",
+uv                        INT            COMMENT "页面UV",
+position_exp_num          INT            COMMENT "坑位曝光",
+position_uv               INT            COMMENT "坑位uv",
+exp_num                   INT            COMMENT "商品曝光数",
+click_num                 INT            COMMENT "商品点击数",
+click_uv                  INT            COMMENT "点击UV",
+sku_click_ratio           decimal(10,4)  COMMENT "商品点击率",
+cart_num                  INT            COMMENT "商品加购数",
+cart_uv                   INT            COMMENT "加购UV",
+sku_cart_ratio            decimal(10,4)  COMMENT "商品加购率",
+user_cart_ratio           decimal(10,4)  COMMENT "加购率",
+order_sku_num             INT            COMMENT "下单商品数",
+order_sku_radio           decimal(10,4)  COMMENT "下单商品转化率",
+paid_sku                  INT            COMMENT "付款商品数",
+paid_amount               INT            COMMENT "付款金额",
+sku_add_count             INT            COMMENT "商品加收次数",  
+user_add_count            INT            COMMENT "加收用户数",
+gmv                       INT            COMMENT "gmv",
+gmv_cost_mille            decimal(10,4)  COMMENT "千次曝光GMV",
+order_user_count          INT            COMMENT "下单客户数",
+pay_uv                    INT            COMMENT "付款客户数",
+paid_user                 decimal(10,4)  COMMENT "客单价",
+platform                  varchar(64)         COMMENT "平台",
+recommend_position        varchar(256)         COMMENT "列表页编号",
+position_name             varchar(128)         COMMENT "列表页名称",
+language                    varchar(128)         COMMENT "语言站",
+country_code                   varchar(128)         COMMENT "国家",
+add_time                  varchar(128)         comment ""
+)
+COMMENT 'zaful APP发现好货数据报表新需求';
+
+
+
+--连接mysql 在
+mysql -hbigdata_all_prd_mysql_m.gw-internel.com -uglbg_dw -pdqZnf0udB9fJk -Dglbg_dw
+
+
+insert into zaful_app_recommend_item_wuc_report_exp 
+(pv_banner,uv_banner,position_click_num_banner,position_uv_banner,platform,recommend_position,position_name,language,country_code,add_time) 
+values
+(20,2,19,2,'android','itemrecommend','发现好货','all','all','2018-12-1'),
+(1,1,15,2,'ios','itemrecommend','发现好货','all','null','2018-12-155')
+
+
+pv,uv,position_exp_num,position_uv,exp_num,click_num,click_uv,sku_click_ratio,cart_num,cart_uv,sku_cart_ratio,user_cart_ratio,order_sku_num,order_sku_radio,paid_sku,paid_amount,sku_add_count,  user_add_count,gmv,gmv_cost_mille,order_user_count,pay_uv,paid_user,platform,recommend_position,position_name,language,country_code,add_time
