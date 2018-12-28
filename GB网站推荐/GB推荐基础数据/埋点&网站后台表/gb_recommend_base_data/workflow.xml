@@ -53,7 +53,7 @@
             <arg>bigdevelp_user</arg>
             <arg>ePVxXNZKuNbAzNOH</arg>
             <arg>goods_sn,glb_oi,glb_u,glb_od,glb_w,glb_x,glb_tm,year,month,day,add_time</arg>
-            <arg>string,string,long,string,int,string,long,string,string,string,int</arg>
+            <arg>string,string,string,string,int,string,long,string,string,string,int</arg>
             <arg>etl_date</arg>
             <arg>${YEAR}${MONTH}${DAY}</arg>
 		</java>
@@ -93,7 +93,7 @@
             <arg>bigdevelp_user</arg>
             <arg>ePVxXNZKuNbAzNOH</arg>
             <arg>order_sn,order_status,goods_sn,user_id,created_time</arg>
-            <arg>string,int,string,long,int</arg>
+            <arg>string,int,string,string,int</arg>
             <arg>etl_date</arg>
             <arg>${YEAR}${MONTH}${DAY}</arg>
 		</java>
