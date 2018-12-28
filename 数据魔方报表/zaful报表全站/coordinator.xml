@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="gb_recommend_position_report-coord"
+<coordinator-app name="rewrite_zaful_app_recommend_report_featured_first"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
-                <timeout>-1</timeout>
+	    <timeout>-1</timeout>
 		<execution>FIFO</execution>
 	</controls>
 	<datasets>
@@ -32,17 +32,35 @@
 			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
-<dataset name="input_data01" frequency="${coord:days(1)}"
+		<dataset name="input_data01" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_proj_trigger/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/stg/zaful_log/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
-</dataset>
+		</dataset>
+		<dataset name="input_data02" frequency="${coord:days(1)}"
+			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
+			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/stg/zaful_increment/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<done-flag></done-flag>
+		</dataset>
+		<dataset name="input_data03" frequency="${coord:days(1)}"
+			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
+			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/stg_zaful_log/zf_app_log_clean_10013/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<done-flag></done-flag>
+		</dataset>
 	</datasets>
-<input-events>
+	
+	<input-events>
 		<data-in name="input01" dataset="input_data01">
 			<instance>${coord:current(0)}</instance>
 		</data-in>
-</input-events>
+		<data-in name="input02" dataset="input_data02">
+			<instance>${coord:current(0)}</instance>
+		</data-in>
+		<data-in name="input03" dataset="input_data03">
+			<instance>${coord:current(0)}</instance>
+		</data-in>
+	</input-events>
+
 	<output-events>
 		<data-out name="year" dataset="yearout">
 			<instance>${coord:current(-1)}</instance>
@@ -57,7 +75,7 @@
 			<instance>${coord:current(-1)}</instance>
 		</data-out>
 		<data-out name="wdate" dataset="wdout">
-  		    <instance>${coord:current(-7)}</instance>
+  		    <instance>${coord:current(-14)}</instance>
   	    </data-out>
 	</output-events>
 

@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS dw_zaful_recommend.rewrite_zaful_app_abtest_report(
+exp_num                   INT            COMMENT "商品曝光数",
+click_num                 INT            COMMENT "商品点击数",
+cart_num                  INT            COMMENT "商品加购数",
+collect_num               INT            COMMENT "商品收藏数",
+order_num                 INT            COMMENT "订单数",
+order_amount              INT            COMMENT "订单金额",
+platform                  STRING         COMMENT "android或者ios",
+af_inner_mediasource      STRING         COMMENT "推荐位",
+planid                    STRING         COMMENT "",
+versionid                 STRING         comment ""
+)
+COMMENT 'ZAFUL APP AB测试数据报表'
+PARTITIONED BY (add_time STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\n' STORED AS TEXTFILE
+;

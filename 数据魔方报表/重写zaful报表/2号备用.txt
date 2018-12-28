@@ -1,0 +1,829 @@
+--页面PV
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_pv_tmp
+SELECT
+  count(*) as pv,
+  platform,
+  'recommend_homepage' as af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+FROM
+  ods.ods_app_burial_log 
+WHERE
+  concat_ws('-', year, month, day) = '${ADD_TIME}'
+  and event_name='af_view_homepage'
+  and get_json_object(event_value, '$.af_content_type') ='view homepage'
+  and upper(get_json_object(event_value, '$.af_channel_name')) ='TRENDS'
+  and site='zaful'
+group by
+  platform
+union all 
+SELECT
+  count(*) as pv,
+  platform,
+  'recommend productdetail' as af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+FROM
+  ods.ods_app_burial_log 
+WHERE
+  concat_ws('-', year, month, day) = '${ADD_TIME}'
+  and event_name='af_view_product'
+  and site='zaful'
+group by
+  platform
+;
+
+
+--页面UV
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_uv_tmp
+SELECT
+  count(*) AS uv,
+  m.platform,
+  m.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+FROM
+  (
+    SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend_homepage' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+        and event_name='af_view_homepage'
+        and get_json_object(event_value, '$.af_content_type') ='view homepage'
+        and upper(get_json_object(event_value, '$.af_channel_name')) ='TRENDS'
+        and site='zaful'
+    GROUP BY
+      appsflyer_device_id,
+      platform
+    union all 
+    SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend productdetail' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+      and event_name='af_view_product'
+      and site='zaful'
+    group by
+      appsflyer_device_id,
+      platform
+  ) m
+group by
+  m.platform,
+  m.af_inner_mediasource
+  ;
+
+--商品曝光数
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_exp_num_tmp
+SELECT
+sum(m.exp_num) as exp_num,
+m.platform,
+m.af_inner_mediasource,
+'${ADD_TIME}' as add_time
+FROM
+(
+  SELECT
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource') as af_inner_mediasource,
+  length(get_json_object(event_value, '$.af_content_id'))-length(regexp_replace(get_json_object(event_value, '$.af_content_id'),',',''))+1 as exp_num
+  FROM
+  ods.ods_app_burial_log 
+  WHERE
+  concat_ws('-', year, month, day) = '${ADD_TIME}'
+  and event_name='af_impression'
+  and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage','recommend productdetail')
+      and site='zaful'
+) m 
+group by
+m.platform,
+m.af_inner_mediasource
+;
+
+
+--查看商品UV
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_sku_uv_tmp
+SELECT
+  count(*) AS sku_uv,
+  m.platform,
+  m.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+FROM
+  (
+    SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend_homepage' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+        and event_name='af_impression'
+		and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage')
+        and site='zaful'
+    GROUP BY
+      appsflyer_device_id,
+      platform
+	union all
+	SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend productdetail' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+        and event_name='af_impression'
+		and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend productdetail')
+        and site='zaful'
+    GROUP BY
+      appsflyer_device_id,
+      platform
+  ) m
+group by
+  m.platform,
+  m.af_inner_mediasource
+  ;
+
+
+--商品点击数
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_click_num_tmp
+SELECT
+  count(*) AS click_num,
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource') as af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+FROM
+  ods.ods_app_burial_log 
+WHERE
+  concat_ws('-', year, month, day) = '${ADD_TIME}'
+  AND event_name='af_view_product'
+  AND get_json_object(event_value, '$.af_changed_size_or_color') = 0
+  and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage','recommend productdetail')
+      and site='zaful'
+group by
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource')
+;
+
+
+--点击UV
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_click_uv_tmp
+SELECT
+  count(*) AS click_uv,
+  m.platform,
+  m.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+FROM
+  (
+    SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend_homepage' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+        and event_name='af_view_product'
+		AND get_json_object(event_value, '$.af_changed_size_or_color') = 0
+		and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage')
+        and site='zaful'
+    GROUP BY
+      appsflyer_device_id,
+      platform
+	union all
+	SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend productdetail' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+        and event_name='af_view_product'
+		AND get_json_object(event_value, '$.af_changed_size_or_color') = 0
+		and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend productdetail')
+        and site='zaful'
+    GROUP BY
+      appsflyer_device_id,
+      platform
+  ) m
+group by
+  m.platform,
+  m.af_inner_mediasource
+  ;
+
+  
+  
+--商品加购数
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_cart_num_tmp
+SELECT
+sum(m.cart_num) as cart_num,
+m.platform,
+m.af_inner_mediasource,
+'${ADD_TIME}' as add_time
+FROM
+(
+  SELECT
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource') as af_inner_mediasource,
+  get_json_object(event_value, '$.af_quantity') as cart_num
+  FROM
+  ods.ods_app_burial_log 
+  WHERE
+  concat_ws('-', year, month, day) = '${ADD_TIME}'
+  and event_name='af_add_to_bag'
+  and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage','recommend productdetail')
+      and site='zaful'
+) m 
+group by
+m.platform,
+m.af_inner_mediasource
+;
+
+--加购UV
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_cart_uv_tmp
+SELECT
+  count(*) AS cart_uv,
+  m.platform,
+  m.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+FROM
+  (
+    SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend_homepage' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+        and event_name='af_add_to_bag'
+		and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage')
+        and site='zaful'
+    GROUP BY
+      appsflyer_device_id,
+      platform
+	union all
+	SELECT
+      appsflyer_device_id,
+      platform,
+      'recommend productdetail' as af_inner_mediasource
+    FROM
+      ods.ods_app_burial_log 
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+        and event_name='af_add_to_bag'
+		and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend productdetail')
+        and site='zaful'
+    GROUP BY
+      appsflyer_device_id,
+      platform
+  ) m
+group by
+  m.platform,
+  m.af_inner_mediasource
+  ;
+
+
+--下单商品数
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_order_sku_num_tmp
+SELECT
+  SUM(x2.goods_number) AS order_num,
+  x1.platform,
+  x1.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+from
+  dw_zaful_recommend.rewrite_app_report_sku_user_country_tmp x1
+  INNER JOIN dw_zaful_recommend.rewrite_app_report_sku_user_tmp x2 ON x1.user_id = x2.user_id
+  AND x1.goods_sn = x2.goods_sn
+group by
+  x1.platform,
+  x1.af_inner_mediasource
+;
+
+
+--下单UV
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_order_uv_tmp
+SELECT
+  count(distinct x1.appsflyer_device_id) as order_uv,
+  x1.platform,
+  x1.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+from
+  dw_zaful_recommend.rewrite_uv_app_report_sku_user_country_tmp x1
+  INNER JOIN dw_zaful_recommend.rewrite_app_report_sku_user_tmp x2 ON x1.user_id = x2.user_id
+  AND x1.goods_sn = x2.goods_sn
+group by
+  x1.platform,
+  x1.af_inner_mediasource
+;
+
+--销量
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_purchase_num_tmp
+SELECT
+  SUM(x2.goods_number) AS purchase_num,
+  x1.platform,
+  x1.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+from
+  dw_zaful_recommend.rewrite_app_report_sku_user_country_tmp x1
+  INNER JOIN dw_zaful_recommend.rewrite_app_report_sku_user_tmp x2 ON x1.user_id = x2.user_id
+  AND x1.goods_sn = x2.goods_sn
+where
+  x2.order_status not in ('0', '11')
+group by
+  x1.platform,
+  x1.af_inner_mediasource
+;
+
+
+--付款UV
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_pay_uv_tmp
+SELECT
+  count(distinct x1.appsflyer_device_id) as order_uv,
+  x1.platform,
+  x1.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+from
+  dw_zaful_recommend.rewrite_uv_app_report_sku_user_country_tmp x1
+  INNER JOIN dw_zaful_recommend.rewrite_app_report_sku_user_tmp x2 ON x1.user_id = x2.user_id
+  AND x1.goods_sn = x2.goods_sn
+where
+  x2.order_status not in ('0', '11')
+group by
+  x1.platform,
+  x1.af_inner_mediasource
+;
+
+
+
+--销售额
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_pay_amount_tmp
+SELECT
+  sum(x2.pay_amount) as pay_amount,
+  x1.platform,
+  x1.af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+from
+  dw_zaful_recommend.rewrite_app_report_sku_user_country_tmp x1
+  INNER JOIN dw_zaful_recommend.rewrite_app_report_sku_user_tmp x2 ON x1.user_id = x2.user_id
+  AND x1.goods_sn = x2.goods_sn
+where
+  x2.order_status not in ('0', '11')
+group by
+  x1.platform,
+  x1.af_inner_mediasource
+  ;
+
+
+--商品收藏UV	
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_collect_num_tmp
+SELECT
+  count(distinct appsflyer_device_id) as collect_num,
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource') AS af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+   FROM
+  ods.ods_app_burial_log 
+  WHERE
+  concat_ws('-', year, month, day) = '${ADD_TIME}'
+  and event_name='af_add_to_wishlist'
+  and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage','recommend productdetail')
+      and site='zaful'
+group by
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource');
+  
+
+--商品收藏数	
+INSERT OVERWRITE TABLE dw_zaful_recommend.rewrite_app_report_collect_num_tmp
+SELECT
+  count(*) as collect_num,
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource') AS af_inner_mediasource,
+  '${ADD_TIME}' as add_time
+   FROM
+  ods.ods_app_burial_log 
+  WHERE
+  concat_ws('-', year, month, day) = '${ADD_TIME}'
+  and event_name='af_add_to_wishlist'
+  and get_json_object(event_value, '$.af_inner_mediasource') in ('recommend_homepage','recommend productdetail')
+      and site='zaful'
+group by
+  platform,
+  get_json_object(event_value, '$.af_inner_mediasource');
+
+
+
+
+--所有结果汇总
+INSERT overwrite TABLE dw_zaful_recommend.rewrite_zaful_app_recommend_report PARTITION (add_time = '${ADD_TIME}')
+select
+  NVL(a.pv,0),
+  NVL(b.uv,0),
+  c.exp_num,
+  d.sku_uv,
+  e.click_num,
+  f.click_uv,
+  e.click_num / c.exp_num,
+  f.click_uv / d.sku_uv,
+  g.cart_num,
+  h.cart_uv,
+  g.cart_num / c.exp_num,
+  h.cart_uv / d.sku_uv,
+  i.order_sku_num,
+  j.order_uv,
+  i.order_sku_num / g.cart_num,
+  j.order_uv / d.sku_uv,
+  k.purchase_num,
+  l.pay_uv,
+  m.pay_amount,
+  k.purchase_num / c.exp_num,
+  l.pay_uv / d.sku_uv,
+  n.collect_uv,
+  o.collect_num,
+  'android',
+  'recommend productdetail',
+  '商详页推荐'
+from   
+(select '${ADD_TIME}' as add_time) mm 
+left join 
+(select pv, add_time from  dw_zaful_recommend.rewrite_app_report_pv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') a on mm.add_time=a.add_time
+left join
+(select uv, add_time from  dw_zaful_recommend.rewrite_app_report_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') b on mm.add_time=b.add_time
+left join 
+(select exp_num, add_time from dw_zaful_recommend.rewrite_app_report_exp_num_tmp where af_inner_mediasource='recommend productdetail' and platform='android') c on mm.add_time=c.add_time
+left join 
+(select sku_uv, add_time from dw_zaful_recommend.rewrite_app_report_sku_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') d on mm.add_time=d.add_time
+left join 
+(select click_num, add_time from dw_zaful_recommend.rewrite_app_report_click_num_tmp where af_inner_mediasource='recommend productdetail' and platform='android') e on mm.add_time=e.add_time
+left join 
+(select click_uv, add_time from dw_zaful_recommend.rewrite_app_report_click_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') f on mm.add_time=f.add_time
+left join 
+(select cart_num, add_time from dw_zaful_recommend.rewrite_app_report_cart_num_tmp where af_inner_mediasource='recommend productdetail' and platform='android') g on mm.add_time=g.add_time
+left join 
+(select cart_uv, add_time from dw_zaful_recommend.rewrite_app_report_cart_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') h on mm.add_time=h.add_time
+left join 
+(select order_sku_num, add_time from dw_zaful_recommend.rewrite_app_report_order_sku_num_tmp where af_inner_mediasource='recommend productdetail' and platform='android') i on mm.add_time=i.add_time
+left join 
+(select order_uv, add_time from dw_zaful_recommend.rewrite_app_report_order_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') j on mm.add_time=j.add_time
+left join 
+(select purchase_num, add_time from dw_zaful_recommend.rewrite_app_report_purchase_num_tmp where af_inner_mediasource='recommend productdetail' and platform='android') k on mm.add_time=k.add_time
+left join 
+(select pay_uv, add_time from dw_zaful_recommend.rewrite_app_report_pay_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') l on mm.add_time=l.add_time
+left join 
+(select pay_amount, add_time from dw_zaful_recommend.rewrite_app_report_pay_amount_tmp where af_inner_mediasource='recommend productdetail' and platform='android') m on mm.add_time=m.add_time
+left join 
+(select collect_uv, add_time from dw_zaful_recommend.rewrite_app_report_collect_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='android') n on mm.add_time=n.add_time
+left join 
+(select collect_num, add_time from dw_zaful_recommend.rewrite_app_report_collect_num_tmp where af_inner_mediasource='recommend productdetail' and platform='android') o on mm.add_time=o.add_time
+union all
+select
+  NVL(a.pv,0),
+  NVL(b.uv,0),
+  c.exp_num,
+  d.sku_uv,
+  e.click_num,
+  f.click_uv,
+  e.click_num / c.exp_num,
+  f.click_uv / d.sku_uv,
+  g.cart_num,
+  h.cart_uv,
+  g.cart_num / c.exp_num,
+  h.cart_uv / d.sku_uv,
+  i.order_sku_num,
+  j.order_uv,
+  i.order_sku_num / g.cart_num,
+  j.order_uv / d.sku_uv,
+  k.purchase_num,
+  l.pay_uv,
+  m.pay_amount,
+  k.purchase_num / c.exp_num,
+  l.pay_uv / d.sku_uv,
+  n.collect_uv,
+  o.collect_num,
+  'ios',
+  'recommend_homepage',
+  '首页底部推荐'
+from   
+(select '${ADD_TIME}' as add_time) mm 
+left join 
+(select pv, add_time from  dw_zaful_recommend.rewrite_app_report_pv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') a on mm.add_time=a.add_time
+left join
+(select uv, add_time from  dw_zaful_recommend.rewrite_app_report_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') b on mm.add_time=b.add_time
+left join 
+(select exp_num, add_time from dw_zaful_recommend.rewrite_app_report_exp_num_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') c on mm.add_time=c.add_time
+left join 
+(select sku_uv, add_time from dw_zaful_recommend.rewrite_app_report_sku_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') d on mm.add_time=d.add_time
+left join 
+(select click_num, add_time from dw_zaful_recommend.rewrite_app_report_click_num_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') e on mm.add_time=e.add_time
+left join 
+(select click_uv, add_time from dw_zaful_recommend.rewrite_app_report_click_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') f on mm.add_time=f.add_time
+left join 
+(select cart_num, add_time from dw_zaful_recommend.rewrite_app_report_cart_num_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') g on mm.add_time=g.add_time
+left join 
+(select cart_uv, add_time from dw_zaful_recommend.rewrite_app_report_cart_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') h on mm.add_time=h.add_time
+left join 
+(select order_sku_num, add_time from dw_zaful_recommend.rewrite_app_report_order_sku_num_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') i on mm.add_time=i.add_time
+left join 
+(select order_uv, add_time from dw_zaful_recommend.rewrite_app_report_order_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') j on mm.add_time=j.add_time
+left join 
+(select purchase_num, add_time from dw_zaful_recommend.rewrite_app_report_purchase_num_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') k on mm.add_time=k.add_time
+left join 
+(select pay_uv, add_time from dw_zaful_recommend.rewrite_app_report_pay_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') l on mm.add_time=l.add_time
+left join 
+(select pay_amount, add_time from dw_zaful_recommend.rewrite_app_report_pay_amount_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') m on mm.add_time=m.add_time
+left join 
+(select collect_uv, add_time from dw_zaful_recommend.rewrite_app_report_collect_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') n on mm.add_time=n.add_time
+left join 
+(select collect_num, add_time from dw_zaful_recommend.rewrite_app_report_collect_num_tmp where af_inner_mediasource='recommend_homepage' and platform='ios') o on mm.add_time=o.add_time
+union all
+select
+   NVL(a.pv,0),
+  NVL(b.uv,0),
+  c.exp_num,
+  d.sku_uv,
+  e.click_num,
+  f.click_uv,
+  e.click_num / c.exp_num,
+  f.click_uv / d.sku_uv,
+  g.cart_num,
+  h.cart_uv,
+  g.cart_num / c.exp_num,
+  h.cart_uv / d.sku_uv,
+  i.order_sku_num,
+  j.order_uv,
+  i.order_sku_num / g.cart_num,
+  j.order_uv / d.sku_uv,
+  k.purchase_num,
+  l.pay_uv,
+  m.pay_amount,
+  k.purchase_num / c.exp_num,
+  l.pay_uv / d.sku_uv,
+  n.collect_uv,
+  o.collect_num,
+  'ios',
+  'recommend productdetail',
+  '商详页推荐'
+from   
+(select '${ADD_TIME}' as add_time) mm 
+left join 
+(select pv, add_time from  dw_zaful_recommend.rewrite_app_report_pv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') a on mm.add_time=a.add_time
+left join
+(select uv, add_time from  dw_zaful_recommend.rewrite_app_report_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') b on mm.add_time=b.add_time
+left join 
+(select exp_num, add_time from dw_zaful_recommend.rewrite_app_report_exp_num_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') c on mm.add_time=c.add_time
+left join 
+(select sku_uv, add_time from dw_zaful_recommend.rewrite_app_report_sku_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') d on mm.add_time=d.add_time
+left join 
+(select click_num, add_time from dw_zaful_recommend.rewrite_app_report_click_num_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') e on mm.add_time=e.add_time
+left join 
+(select click_uv, add_time from dw_zaful_recommend.rewrite_app_report_click_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') f on mm.add_time=f.add_time
+left join 
+(select cart_num, add_time from dw_zaful_recommend.rewrite_app_report_cart_num_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') g on mm.add_time=g.add_time
+left join 
+(select cart_uv, add_time from dw_zaful_recommend.rewrite_app_report_cart_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') h on mm.add_time=h.add_time
+left join 
+(select order_sku_num, add_time from dw_zaful_recommend.rewrite_app_report_order_sku_num_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') i on mm.add_time=i.add_time
+left join 
+(select order_uv, add_time from dw_zaful_recommend.rewrite_app_report_order_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') j on mm.add_time=j.add_time
+left join 
+(select purchase_num, add_time from dw_zaful_recommend.rewrite_app_report_purchase_num_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') k on mm.add_time=k.add_time
+left join 
+(select pay_uv, add_time from dw_zaful_recommend.rewrite_app_report_pay_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') l on mm.add_time=l.add_time
+left join 
+(select pay_amount, add_time from dw_zaful_recommend.rewrite_app_report_pay_amount_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') m on mm.add_time=m.add_time
+left join 
+(select collect_uv, add_time from dw_zaful_recommend.rewrite_app_report_collect_uv_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') n on mm.add_time=n.add_time
+left join 
+(select collect_num, add_time from dw_zaful_recommend.rewrite_app_report_collect_num_tmp where af_inner_mediasource='recommend productdetail' and platform='ios') o on mm.add_time=o.add_time
+union all
+select
+  NVL(a.pv,0),
+  NVL(b.uv,0),
+  c.exp_num,
+  d.sku_uv,
+  e.click_num,
+  f.click_uv,
+  e.click_num / c.exp_num,
+  f.click_uv / d.sku_uv,
+  g.cart_num,
+  h.cart_uv,
+  g.cart_num / c.exp_num,
+  h.cart_uv / d.sku_uv,
+  i.order_sku_num,
+  j.order_uv,
+  i.order_sku_num / g.cart_num,
+  j.order_uv / d.sku_uv,
+  k.purchase_num,
+  l.pay_uv,
+  m.pay_amount,
+  k.purchase_num / c.exp_num,
+  l.pay_uv / d.sku_uv,
+  n.collect_uv,
+  o.collect_num,
+  'android',
+  'recommend_homepage',
+  '首页底部推荐'
+from   
+(select '${ADD_TIME}' as add_time) mm 
+left join 
+(select pv, add_time from  dw_zaful_recommend.rewrite_app_report_pv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') a on mm.add_time=a.add_time
+left join
+(select uv, add_time from  dw_zaful_recommend.rewrite_app_report_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') b on mm.add_time=b.add_time
+left join 
+(select exp_num, add_time from dw_zaful_recommend.rewrite_app_report_exp_num_tmp where af_inner_mediasource='recommend_homepage' and platform='android') c on mm.add_time=c.add_time
+left join 
+(select sku_uv, add_time from dw_zaful_recommend.rewrite_app_report_sku_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') d on mm.add_time=d.add_time
+left join 
+(select click_num, add_time from dw_zaful_recommend.rewrite_app_report_click_num_tmp where af_inner_mediasource='recommend_homepage' and platform='android') e on mm.add_time=e.add_time
+left join 
+(select click_uv, add_time from dw_zaful_recommend.rewrite_app_report_click_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') f on mm.add_time=f.add_time
+left join 
+(select cart_num, add_time from dw_zaful_recommend.rewrite_app_report_cart_num_tmp where af_inner_mediasource='recommend_homepage' and platform='android') g on mm.add_time=g.add_time
+left join 
+(select cart_uv, add_time from dw_zaful_recommend.rewrite_app_report_cart_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') h on mm.add_time=h.add_time
+left join 
+(select order_sku_num, add_time from dw_zaful_recommend.rewrite_app_report_order_sku_num_tmp where af_inner_mediasource='recommend_homepage' and platform='android') i on mm.add_time=i.add_time
+left join 
+(select order_uv, add_time from dw_zaful_recommend.rewrite_app_report_order_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') j on mm.add_time=j.add_time
+left join 
+(select purchase_num, add_time from dw_zaful_recommend.rewrite_app_report_purchase_num_tmp where af_inner_mediasource='recommend_homepage' and platform='android') k on mm.add_time=k.add_time
+left join 
+(select pay_uv, add_time from dw_zaful_recommend.rewrite_app_report_pay_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') l on mm.add_time=l.add_time
+left join 
+(select pay_amount, add_time from dw_zaful_recommend.rewrite_app_report_pay_amount_tmp where af_inner_mediasource='recommend_homepage' and platform='android') m on mm.add_time=m.add_time
+left join 
+(select collect_uv, add_time from dw_zaful_recommend.rewrite_app_report_collect_uv_tmp where af_inner_mediasource='recommend_homepage' and platform='android') n on mm.add_time=n.add_time
+left join 
+(select collect_num, add_time from dw_zaful_recommend.rewrite_app_report_collect_num_tmp where af_inner_mediasource='recommend_homepage' and platform='android') o on mm.add_time=o.add_time
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,17 @@
+select 
+sum(sample_num),
+sum(exp_num),
+sum(click_num),
+sum(click_num)/sum(exp_num),
+sum(cart_num),
+sum(cart_num)/sum(exp_num),
+sum(purchase_num),
+sum(purchase_num)/sum(exp_num),
+sum(pay_amount),
+sum(pay_gmv),
+'',
+'1301',
+add_time
+from tmp.rewrite_zaful_cat_report
+ where add_time between '2018-09-11' and '2018-09-15'
+ group by add_time

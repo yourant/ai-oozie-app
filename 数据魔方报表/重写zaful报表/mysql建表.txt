@@ -1,0 +1,47 @@
+CREATE TABLE IF NOT EXISTS rewrite_zaful_app_recommend_report(
+pv                        INT            COMMENT "页面PV",
+uv                        INT            COMMENT "页面UV",
+exp_num                   INT            COMMENT "商品曝光数",
+sku_uv                    INT            COMMENT "查看商品UV",
+click_num                 INT            COMMENT "商品点击数",
+click_uv                  INT            COMMENT "点击UV",
+exp_click_ratio           decimal(10,4)  COMMENT "曝光点击率",
+user_click_ratio          decimal(10,4)  COMMENT "用户点击率",
+cart_num                  INT            COMMENT "商品加购数",
+cart_uv                   INT            COMMENT "加购UV",
+sku_cart_ratio            decimal(10,4)  COMMENT "商品加购率",
+user_cart_ratio           decimal(10,4)  COMMENT "用户加购率",
+order_sku_num             INT            COMMENT "下单商品数",
+order_uv                  INT            COMMENT "下单UV",
+sku_order_ratio           decimal(10,4)  COMMENT "商品下单率",
+user_order_ratio          decimal(10,4)  COMMENT "用户下单率",
+purchase_num              INT            COMMENT "销量",  
+pay_uv                    INT            COMMENT "付款uv",
+pay_amount                INT            COMMENT "销售额",
+sku_purchase_ratio        decimal(10,4)  COMMENT "商品购买转化率",
+user_purchase_ratio       decimal(10,4)  COMMENT "用户购买转化率",
+collect_uv                INT            COMMENT "商品收藏UV",
+collect_num               INT            COMMENT "商品收藏数",
+platform                  varchar(64)    COMMENT "平台",
+recommend_position        varchar(128)   COMMENT "推荐位编号",
+position_name             varchar(128)   COMMENT "推荐位名称",
+add_time                  date           COMMENT "日期")
+COMMENT 'zaful APP推荐位数据报表新需求重写';
+
+
+
+--连接mysql 在
+mysql -hbigdata_all_prd_mysql_m.gw-internel.com -uglbg_dw -pdqZnf0udB9fJk -Dglbg_dw
+
+
+
+--更新数据
+update rewrite_zaful_app_recommend_report set
+  exp_click_ratio=click_num / exp_num * 100,
+  user_click_ratio=click_uv / sku_uv * 100,
+  sku_cart_ratio=cart_num / exp_num * 100,
+  user_cart_ratio=cart_uv / sku_uv *100,
+  sku_order_ratio=order_sku_num / exp_num * 100,
+  user_order_ratio=order_uv / sku_uv * 100,
+  sku_purchase_ratio=purchase_num / exp_num * 100,
+  user_purchase_ratio=pay_uv / sku_uv * 100;
