@@ -1,0 +1,124 @@
+<workflow-app name="gb_recommend_base_data-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="base_data_hive" />
+     <action name="base_data_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>base_data.q</script>
+             <param>DATE=${DATE}</param>
+        </hive>
+        <ok to="email_gb_pc_event_info2mongo"/>
+        <error to="failed_mail"/>
+    </action> 
+
+ <action name="email_gb_pc_event_info2mongo">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/email_gb_pc_event_info/date=${YEAR}${MONTH}${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>email_gb_pc_event_info</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,glb_oi,glb_u,glb_od,glb_w,glb_x,glb_tm,year,month,day,add_time</arg>
+            <arg>string,string,int,string,int,string,long,string,string,string,int</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="email_gb_goods_event_info2mongo" />
+		<error to="failed_mail" />
+	</action>
+     
+     
+	<action name="email_gb_goods_event_info2mongo">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+            	<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/email_gb_goods_event_info/date=${YEAR}${MONTH}${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>email_gb_goods_event_info</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>order_sn,order_status,goods_sn,user_id,created_time</arg>
+            <arg>string,int,string,int,int</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+
+
+
+
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com</to>
+			<subject>gb_recommend_base_data-wf failed</subject>
+			<body>gb_recommend_base_data-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>

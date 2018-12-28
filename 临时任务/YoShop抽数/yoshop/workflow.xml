@@ -1,0 +1,397 @@
+<workflow-app name="yoshop_data_import-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="ys_cart_import" />
+	    <action name="ys_cart_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>cart</arg>
+            <arg>--columns</arg>
+            <arg>cart_id,user_id,session_id,goods_id,goods_number,ischecked,wid,modify,created,update_time,source,source_version,free_gift_type</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/stg.db/ys_cart</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>1</arg>
+        </sqoop>
+        <ok to="ys_category_import"/>
+        <error to="failed_mail"/>
+       </action>
+			<action name="ys_category_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>category</arg>
+            <arg>--columns</arg>
+            <arg>cat_id,code,parent_id,cat_name,cat_ch_name,node,attr,is_show,level,url_title,cat_pic,cat_cont,meta_title,meta_keywords,meta_description,shipping_method,is_free_shipping_cate,sort,add_time,iphone_img_addr,android_img_addr,recommend_img_addr,is_app_show,pc_img,pc_img_url,is_ping,banner_url_type,banner_is_show,static_page_name,weight,seo_title,seo_description,template_id</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/stg.db/ys_category</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>1</arg>
+        </sqoop>
+        <ok to="ys_goods_import"/>
+        <error to="failed_mail"/>
+       </action>
+			<action name="ys_goods_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>goods</arg>
+            <arg>--columns</arg>
+            <arg>goods_id,goods_sn,cat_id,goods_title,default_title,seo_title,seo_description,goods_weight,goods_volume_weight,goods_real_weight,cost_price,purchase_price,goods_thumb,goods_grid,goods_img,goods_img_x,goods_original,is_delete,is_free_shipping,sort,group_goods_id,last_modify,add_time,brand,pdm_add_time,cn_name,status,is_show_alone,hold_price,goods_status,goods_resource_status,url_title,guide_price,update_time,commentnum,avg_rate,goods_words,site_goods_sn,goods_search_attr,goods_img_app,goods_grid_app,goods_grade_copy,widcode,pdm_widcode</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/stg.db/ys_goods</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>4</arg>
+        </sqoop>
+        <ok to="ys_order_goods_import"/>
+        <error to="failed_mail"/> 
+			</action>
+<action name="ys_order_goods_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>order_goods</arg>
+            <arg>--columns</arg>
+            <arg>id,order_id,goods_thumb,goods_id,goods_name,goods_sn,goods_number,market_price,goods_price,goods_discount_price,goods_attr,goods_type,free_shipping_fee,shipping_fee,is_free_shipping,bind_goods_type,bind_goods_message,wid,add_time,update_time,is_comment,is_clearance,is_promote_price,is_app_price,free_gift_type</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/stg.db/ys_order_goods</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>4</arg>
+        </sqoop>
+        <ok to="ys_order_info_import"/>
+        <error to="failed_mail"/>
+       </action>
+			 <action name="ys_order_info_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>order_info</arg>
+            <arg>--columns</arg>
+            <arg>order_id,order_sn,user_id,order_status,consignee,country,province,city,address,zip,phone,email,order_remark,shipping_id,shipping_name,pay_code,pay_name,pay_time,pay_ip,sort,original_goods_amount,goods_amount,shipping_fee,free_shipping_fee,insure_fee,register_fee,handling_fee,packaging_fee,used_wallet,order_amount,paid_amount,order_currency,order_rate,need_invoice,used_point,point_money,user_order_sn,wid,is_to_push,add_time,fromsource,remark,receipt_time,update_time,coupon_save,coupon_code,order_version,wj_linkid,channel,link_id,is_deptEmail,express_code,tax_id,lang,media_source,campaign,is_to_oms,is_dept_app_push,is_retargeting,pid,c,is_delivery_partly_push,is_delivery_fullly_push,is_fullfillement_push,postback_id,cod_discount,cod_fractions_type,activity_save,payment_type,is_to_soa_cod</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/stg.db/ys_order_info</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>4</arg>
+        </sqoop>
+        <ok to="ys_user_import"/>
+        <error to="failed_mail"/>
+       </action>
+			 <action name="ys_user_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>user</arg>
+            <arg>--columns</arg>
+            <arg>user_id,nick_name,email,password,sex,msn,phone,address_id,reg_time,reg_type,last_time,last_ip,form_type,visit_count,is_validated,user_source,introduction,allpoint,point,avatar,amount,inviter_id,birthday,interest,code,fb_id,update_time,privatesex,isRgUser,cps_status,wj_linkid,channel,upper_id,is_dingyue_success,is_sync_to_mailsys,is_received_promo,is_to_community,country_code,lang,last_order_time,is_del</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/stg.db/ys_user</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>1</arg>
+        </sqoop>
+        <ok to="ys_warehouse_goods_import"/>
+        <error to="failed_mail"/>
+       </action>
+			 <action name="ys_warehouse_goods_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>warehouse_goods</arg>
+            <arg>--columns</arg>
+            <arg>goods_id,wid,goods_number,shop_price,cb_shop_price,market_price,activity_number,activity_number_start,activity_virtual_number,activity_out_number,is_on_sale,pdm_off_sale,last_update,update_user,pre_notice,freeshipping_fee,freeshipping_division_id,delivery_price,first_trip_price,free_division_id,sale_time,discount,show_discount_icon,sale_rule,update_time,show_activity_icon,show_activity_icon_start,show_activity_icon_end,is_ping,goods_real_number,is_clearance,clearance_rate,goods_grade,unsalable,is_to_cb,week1sale,week2sale,is_qinquan,qinquan_time,is_fixed_price,fixed_price_start_date,fixed_price_end_date,is_fixed_promote,fixed_promote_start_date,fixed_promote_end_date,sz_real_number,dzwh_real_number,ybsatj_real_number,cnsz_real_number,yb_real_number</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/stg.db/ys_warehouse_goods</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>4</arg>
+        </sqoop>
+        <ok to="ys_goods_on_sale_hive"/>
+        <error to="failed_mail"/>
+       </action>
+       <action name="ys_goods_on_sale_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>ys_goods_on_sale.q</script>
+        </hive>
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action> 
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com</to>
+			<subject>yoshop_data_import-wf failed</subject>
+			<body>yoshop_data_import-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>

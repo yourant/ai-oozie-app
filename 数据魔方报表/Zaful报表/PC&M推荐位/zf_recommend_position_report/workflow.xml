@@ -1,0 +1,115 @@
+<workflow-app name="zf_recommend_position_report-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="zf_recommend_position_report_hive" />
+	    <action name="zf_recommend_position_report_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME</name>
+				  <value>${ADD_TIME}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME_W</name>
+				  <value>${ADD_TIME_W}</value>
+				</property>
+            </configuration>
+            <script>zaful_recommend_position_report.q</script>
+			 <param>YEAR=${YEAR}</param>
+			 <param>MONTH=${MONTH}</param>
+			 <param>DAY=${DAY}</param>
+			 <param>ADD_TIME=${ADD_TIME}</param>
+			 <param>ADD_TIME_W=${ADD_TIME_W}</param>
+        </hive>
+        <ok to="data_push"/>
+        <error to="failed_mail"/>
+    </action> 
+   <action name="data_push">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <arg>export</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			<arg>--table</arg>
+            <arg>apl_zaful_recommend_position_report</arg>
+            <arg>--columns</arg>
+            <arg>pv,uv,exp_num,click_num,exp_click_ratio,cart_num,cart_ratio,order_num,conversion_ratio,purchase_num,pay_amount,purchase_ratio,total_conversion_ratio,collect_num,platform,recommend_position,position_name,glb_dc,country,add_time</arg>
+            <arg>--export-dir</arg>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_recommend_position_exp</arg>
+            <arg>--input-null-string</arg>
+            <arg>\\N</arg>
+            <arg>--input-null-non-string</arg>
+            <arg>\\N</arg>
+            <arg>--fields-terminated-by</arg>
+            <arg>\001</arg>
+            <arg>--lines-terminated-by</arg>
+            <arg>\n</arg>
+            <arg>-m</arg>
+			<arg>1</arg>
+        </sqoop>
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
+  
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com</to>
+			<subject>zf_recommend_position_report-wf failed</subject>
+			<body>zf_recommend_position_report-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

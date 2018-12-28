@@ -1,0 +1,104 @@
+<workflow-app name="tb_flow_user_import-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="add_partition" />
+     <action name="add_partition">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>add_partition.q</script>
+			<param>ADD_TIME=${ADD_TIME}</param>
+        </hive>
+        <ok to="data_import"/>
+        <error to="failed_mail"/>
+    </action> 
+
+   <action name="data_import" retry-max="3" retry-interval="1">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+            <arg>--query</arg>
+            <arg>SELECT [id], [uid], [reg_time], [data_from], [country], [state], [city], [os], [os_vesion], [browser], [browser_version], [plat], [category], [sku], [last_click_time], [link_id], [adset_id], [_adset_id], [adset_age_min], [adset_age_max], [adset_sex], [adset_create_time], [adset_close_time], [lp], [add_time], [adset_type],[fb_campaign_id],[fb_adset_id],[fb_adgroup_id],[is_app] FROM [tb_flow_user]  where add_time &gt;= ('${YEAR}-${MONTH}-${DAY}') and add_time &lt;= ('${YEAR}-${MONTH}-${DAY} 23:59:59')  and $CONDITIONS</arg>
+           	<arg>--split-by</arg>
+			<arg>id</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/dw_proj.db/tb_flow_user/dt=${ADD_TIME}</arg>
+            <arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+	      	<arg>--fields-terminated-by</arg>
+		    <arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>10</arg>
+        </sqoop>
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
+
+
+
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com</to>
+			<subject>tb_flow_user_import-wf failed</subject>
+			<body>tb_flow_user_import-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>
