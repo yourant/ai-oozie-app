@@ -1,5 +1,5 @@
-CREATE TABLE IF NOT EXISTS zaful_app_category_xxx_report_exp(
-id                        INT primary key not null auto_increment    COMMENT "自增主键",
+CREATE TABLE IF NOT EXISTS rosegal_pc_recommend_position_report_exp(
+id                        INT primary key not null auto_increment    COMMENT "自增主键",         
 pv                        INT            COMMENT "页面PV",
 uv                        INT            COMMENT "页面UV",
 exp_num                   INT            COMMENT "商品曝光数",
@@ -16,7 +16,7 @@ order_sku_num             INT            COMMENT "下单商品数",
 order_uv                  INT            COMMENT "下单UV",
 sku_order_ratio           decimal(10,4)  COMMENT "商品下单率",
 user_order_ratio          decimal(10,4)  COMMENT "用户下单率",
-gmv                       INT            COMMENT "gmv",
+gmv                       INT            COMMENT "GMV",
 purchase_num              INT            COMMENT "销量",  
 pay_uv                    INT            COMMENT "付款uv",
 pay_amount                INT            COMMENT "销售额",
@@ -25,14 +25,14 @@ user_purchase_ratio       decimal(10,4)  COMMENT "用户购买转化率",
 gmv_cost_mille            decimal(10,4)  COMMENT "千次曝光GMV",
 collect_uv                INT            COMMENT "商品收藏UV",
 collect_num               INT            COMMENT "商品收藏数",
-platform                  varchar(64)         COMMENT "平台",
-recommend_position        varchar(128)         COMMENT "",
-position_name             varchar(128)         COMMENT "列表页名称",
-language                    varchar(128)         COMMENT "语言站",
-country_code                   varchar(128)         COMMENT "国家",
-add_time                  date         COMMENT ""
+platform                  varchar(64)    COMMENT "平台",
+recommend_position        varchar(128)   COMMENT "推荐位编号",
+position_name             varchar(128)   COMMENT "推荐位名称",
+lang_code                 varchar(128)   COMMENT "语言站",
+country                   varchar(128)   COMMENT "国家",
+add_time                  date           COMMENT "时间"
 )
-COMMENT 'zaful APP列表页数据报表新需求';
+COMMENT 'rg pc_m推荐位数据报表';
 
 
 
@@ -40,5 +40,15 @@ COMMENT 'zaful APP列表页数据报表新需求';
 mysql -hbigdata_all_prd_mysql_m.gw-internel.com -uglbg_dw -pdqZnf0udB9fJk -Dglbg_dw
 
 
-update zaful_app_category_xxx_report_exp set recommend_position='All'
-where recommend_position='all';
+--更新数据
+update rosegal_pc_recommend_position_report_exp set
+recommend_position='商详页推荐T_3',position_name='商详页推荐-related_recommendations'
+where recommend_position='related_recommendations';
+
+update rosegal_pc_recommend_position_report_exp set
+recommend_position='商详页推荐T_4',position_name='商详页推荐-customers_also_viewed'
+where recommend_position='customers_also_viewed';
+
+update rosegal_pc_recommend_position_report_exp set
+recommend_position='无搜索结果页T_6',position_name='无搜索结果页-may_be_you_like'
+where recommend_position='may_be_you_like';

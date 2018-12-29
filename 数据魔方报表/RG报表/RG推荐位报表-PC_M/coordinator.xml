@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="zaful_app_recommend_category_report-coord"
+<coordinator-app name="rosegal_pc_recommend_position_report_wuc"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
@@ -34,17 +34,17 @@
 		</dataset>
 		<dataset name="input_data01" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/stg/zaful_log/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>/bigdata/log_clean/job/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="input_data02" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/stg/zaful_increment/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>/bigdata/ods/sqoop/rosegal/ods_m_rosegal_eload_job01/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="input_data03" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/stg_zaful_log/zf_app_log_clean_10013/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>/bigdata/ods/sqoop/rosegal/ods_m_rosegal_eload_job02/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 	</datasets>

@@ -1,0 +1,9 @@
+1、把APP 10.17号前的数据都删掉
+2、PC-商详页-RELATED RECOMMENDATIONS，从9月1号开始刷数据
+PC-商详页-CUSTOMERS ALSO VIEWED，从9月1号开始刷数据
+PC-空购物车页-FEATURED RECOMMENDATIONS，从11月30号开始刷数据
+PC-无搜索结果页-Maybe You Like，从9月1开始刷数据
+M-商详页-RELATED RECOMMENDATIONS，从11月30号开始刷数据
+M-空购物车页-FEATURED RECOMMENDATIONS，从11月30号开始刷数据
+M-无搜索结果页-Maybe You Like，从11月30号开始刷数据
+3、PV和UV分开查看，GMV、销售额、千次曝光GMV可以两边都查看到
