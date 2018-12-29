@@ -33,7 +33,7 @@
             <arg>bigdevelp_user</arg>
             <arg>ePVxXNZKuNbAzNOH</arg>
             <arg>site_user_id,region_code,create_time</arg>
-            <arg>int,string,int</arg>
+            <arg>string,string,int</arg>
             <arg>rerun_flag</arg>
             <arg>none</arg>
 			</java>

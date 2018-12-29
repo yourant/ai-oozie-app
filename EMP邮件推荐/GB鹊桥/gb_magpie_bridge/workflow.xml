@@ -110,7 +110,7 @@
             <arg>bigdevelp_user</arg>
             <arg>ePVxXNZKuNbAzNOH</arg>
             <arg>order_sn,goods_sn,user_id,update_time</arg>
-            <arg>string,string,int,int</arg>
+            <arg>string,string,string,int</arg>
             <arg>etl_date</arg>
             <arg>none</arg>
 			</java>
