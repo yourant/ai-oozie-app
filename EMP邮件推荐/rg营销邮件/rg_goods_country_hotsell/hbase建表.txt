@@ -1,0 +1,7 @@
+create 'apl_rg_goods_country_hotsell', 'cf', {NUMREGIONS => 2, SPLITALGO => 'HexStringSplit'}
+
+create 'apl_rosegal_goods_info', 'cf', {NUMREGIONS => 30, SPLITALGO => 'HexStringSplit'}
+
+
+
+create 'apl_result_zaful_app_shop_cart_fact', {NAME => 'cf', TTL => '604800', COMPRESSION => 'snappy'}, {NUMREGIONS => 50, SPLITALGO => 'HexStringSplit'}
