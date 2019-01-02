@@ -49,8 +49,14 @@
 		</dataset>
 	</datasets>
 
-
-
+<input-events>
+		<data-in name="input01" dataset="input_data01">
+			<instance>${coord:current(0)}</instance>
+		</data-in>
+		<data-in name="input02" dataset="input_data02">
+			<instance>${coord:current(0)}</instance>
+		</data-in>
+</input-events>
 
 	<output-events>
 		<data-out name="year" dataset="yearout">
