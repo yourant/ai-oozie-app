@@ -1,0 +1,172 @@
+<workflow-app name="recommend_soa_user_center_gb-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="prepare" />
+	<action name="prepare">
+		<shell xmlns="uri:oozie:shell-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<exec>${PREPARE_EXEC}</exec>
+			<argument>${done_flag_dir}</argument>
+			<argument>${TODAY}</argument>
+			<file>${wf_application_path}/${PREPARE_EXEC}</file>
+		</shell>
+		<ok to="female_recommend" />
+		<error to="failed_mail" />
+	</action>
+    <action name="female_recommend">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				
+            </configuration>
+            <script>female_recommend.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>DATE=${DATE}</param>
+			
+        </hive>
+        <ok to="apl_female_ymal_fact"/>
+        <error to="failed_mail"/>
+    </action>
+	<action name="apl_female_ymal_fact">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/apl_female_ymal_fact/</arg>
+            <arg>/import-to-redis/apl_female_ymal_fact</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>apl_female_ymal_fact</arg>
+            <arg>female_user_cental</arg>
+            <arg>category_id#lang</arg>
+		</java>
+		<ok to="apl_cart_10_fact" />
+		<error to="failed_mail" />
+	</action>
+	<action name="apl_cart_10_fact">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/apl_cart_10_fact/</arg>
+            <arg>/import-to-redis/apl_cart_10_fact</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>apl_cart_10_fact</arg>
+            <arg>favorit_goods</arg>
+            <arg>lang</arg>
+		</java>
+		<ok to="succeeded" />
+		<error to="failed_mail" />
+	</action>
+	<action name="succeeded">
+		<shell xmlns="uri:oozie:shell-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<exec>${DONE_FLAG_EXEC}</exec>
+			<argument>${done_flag_dir}</argument>
+			<argument>${TODAY}</argument>
+			<file>${wf_application_path}/${DONE_FLAG_EXEC}</file>
+		</shell>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>bigdata@globalegrow.com
+			</to>
+			<subject>recommend_soa_user_center_gb failed</subject>
+			<body>recommend_soa_user_center_gb failed ;${timestamp()} </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>
+
