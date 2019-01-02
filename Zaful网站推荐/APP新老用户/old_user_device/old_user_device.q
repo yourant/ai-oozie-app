@@ -45,3 +45,9 @@ FROM
 	) x
 ;
 
+
+INSERT overwrite TABLE dw_zaful_recommend.old_user_device_count PARTITION (dt = '${ADD_TIME}') SELECT
+	count(*)
+FROM
+	dw_zaful_recommend.old_user_device
+
