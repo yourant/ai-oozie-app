@@ -1,0 +1,112 @@
+<workflow-app name="apl_recommend_lable_app_gb-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="apl_lable_app_fact" />
+		<action name="apl_lable_app_fact">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+            </configuration>
+            <script>apl_lable_app_fact.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>DATE=${DATE}</param>
+			
+        </hive>
+        <ok to="apl_lable_app_fact_tohbase"/>
+        <error to="failed_mail"/>
+   	    </action>
+   
+	<action name="apl_lable_app_fact_tohbase">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property> <name>mapred.job.queue.name</name> <value>${queueName}</value> 
+					</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+
+				<property>
+					<name>mapreduce.job.queuename</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+
+			<main-class>com.globalegrow.hadoop.hiveimporthbasejsonmr.HiveImportHbaseHbaseJsonRunner
+			</main-class>
+			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/apl_lable_app_fact</arg>
+			<arg>id,good_sn,catid,pipeline_code,webgoodsn,goodstitle,lang,warecode,reviewcount,avgrate,shopprice,favoritecount,goodsnum,imgurl,gridurl,thumburl,thumbextendurl,url_title,lableid</arg>
+			<arg>0,3,6</arg>
+			<arg>apl_lable_app_fact</arg>
+		</java>
+		<ok to="end" />
+		<error to="kill" />
+	</action>
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>bigdata@globalegrow.com
+			</to>
+			<subject>apl_lable_app_fact_gb failed</subject>
+			<body>apl_lable_app_fact_gb failed ;${timestamp()} </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>
+
