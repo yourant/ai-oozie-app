@@ -1,0 +1,503 @@
+<workflow-app name="app_homepage_flow_gb_day-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="site_multi_lang_brand" />
+	<action name="site_multi_lang_brand">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/user/liuqingfan/site_multi_lang_brand" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri1}</arg>
+			<arg>--username</arg>
+			<arg>${db_username1}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd1}</arg>
+			<arg>--table</arg>
+			<arg>site_multi_lang_brand</arg>
+			<arg>--columns</arg>
+			<arg>id,site_code,brand_name,brand_type,brand_title,brand_code,status,brand_logo,lang,brand_brief,brand_desc,brand_link,seo_title,seo_key_word,seo_desc,seo_canonical,sort,is_use,video,create_time
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/site_multi_lang_brand
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to= "interest"/>
+		<error to="failed_mail" />
+	</action>
+	<action name="interest">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/user/liuqingfan/interest" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>interest</arg>
+			<arg>--columns</arg>
+			<arg>id,label_id,label_name,cat_id,label_pic,order,position,is_show,create_time,update_time,update_id,update_name,total_cat_ids
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/interest
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to= "app_index_tab"/>
+		<error to="failed_mail" />
+	</action>
+		<action name="app_index_tab">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/user/liuqingfan/app_index_tab" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>app_index_tab</arg>
+			<arg>--columns</arg>
+			<arg>id,multiple_language_name,type,icon,background_color,interest_labels,order,is_show,is_user_interest,pipeline_code,platforms,create_time,update_time,update_user,type_value,icon_active,font_color,font_color_active
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/app_index_tab
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to= "trending_data"/>
+		<error to="failed_mail" />
+	</action>
+	<action name="trending_data">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				<property>
+				  <name>DAYWEEK</name>
+				  <value>${DAYWEEK}</value>
+				</property>
+				<property>
+				  <name>DAY2WEEK</name>
+				  <value>${DAY2WEEK}</value>
+				</property>
+            </configuration>
+            <script>gb_app_homepage_trending_rec_bf.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>DATE=${DATE}</param>
+			<param>DAYWEEK=${DAYWEEK}</param>
+			<param>DAY2WEEK=${DAY2WEEK}</param>
+        </hive>
+        <ok to="gb_app_homepage_trending_rec_da"/>
+        <error to="failed_mail"/>
+   	    </action>
+   	    <action name="gb_app_homepage_trending_rec_da">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				<property>
+				  <name>DAYWEEK</name>
+				  <value>${DAYWEEK}</value>
+				</property>
+				<property>
+				  <name>DAY2WEEK</name>
+				  <value>${DAY2WEEK}</value>
+				</property>
+            </configuration>
+            <script>gb_app_homepage_trending_rec_da.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>DATE=${DATE}</param>
+			<param>DAYWEEK=${DAYWEEK}</param>
+			<param>DAY2WEEK=${DAY2WEEK}</param>
+        </hive>
+        <ok to="gb_app_homepage_trending_thirty"/>
+        <error to="failed_mail"/>
+   	    </action>
+   	    <action name="gb_app_homepage_trending_thirty">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/import-to-redis/gb_app_homepage_trending_thirty_rec_bf/" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetoredis.HiveToRedisPriceMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_app_homepage_trending_thirty_rec_bf/</arg>
+            <arg>/import-to-redis/gb_app_homepage_trending_thirty_rec_bf/</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>gb_app_homepage_trending_thirty_rec_bf</arg>
+            <arg>gb_app_homepage_trending_thirty_rec_bf</arg>
+            <arg>tab_id#pipeline_code#lang#platform</arg>
+            <arg>30</arg>
+            <arg>score</arg>
+		</java>
+		<ok to="gb_app_homepage_trending_toredis" />
+		<error to="failed_mail" />
+	</action>
+	<action name="gb_app_homepage_trending_toredis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/import-to-redis/gb_app_homepage_trending_rec_da/" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetoredis.HiveToRedisPriceMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_app_homepage_trending_rec_da/</arg>
+            <arg>/import-to-redis/gb_app_homepage_trending_rec_da/</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>gb_app_homepage_trending_rec_da</arg>
+            <arg>gb_app_homepage_trending_rec_bf</arg>
+            <arg>tab_id###pipeline_code###lang###platform</arg>
+            <arg>30</arg>
+            <arg>score</arg>
+		</java>
+		<ok to="gb_app_homepage_cat_name" />
+		<error to="failed_mail" />
+	</action>   
+	 <action name="gb_app_homepage_cat_name">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/import-to-redis/gb_app_homepage_cat_name/" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetoredis.HiveToRedisSortMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_app_homepage_cat_name_bf/</arg>
+            <arg>/import-to-redis/gb_app_homepage_cat_name_bf/</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>gb_app_homepage_cat_name_bf</arg>
+            <arg>gb_app_homepage_cat_name_bf</arg>
+            <arg>tab_id#pipeline_code#lang#platform</arg>
+            <arg>score</arg>
+		</java>
+		<ok to="gb_app_homepage_brand_name" />
+		<error to="failed_mail" />
+	</action>
+	 <action name="gb_app_homepage_brand_name">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/import-to-redis/gb_app_homepage_brand_name/" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetoredis.HiveToRedisPriceMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_app_homepage_brand_name_bf/</arg>
+            <arg>/import-to-redis/gb_app_homepage_brand_name_bf/</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>gb_app_homepage_brand_name_bf</arg>
+            <arg>gb_app_homepage_brand_name_bf</arg>
+            <arg>tab_id#pipeline_code#lang#platform</arg>
+            <arg>score</arg>
+		</java>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>bigdata@globalegrow.com
+			</to>
+			<subject>app_homepage_flow_gb_day-wf failed</subject>
+			<body>app_homepage_flow_gb_day-wf failed ;${timestamp()} </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>
+

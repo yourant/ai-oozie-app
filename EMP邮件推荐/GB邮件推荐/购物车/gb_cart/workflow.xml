@@ -33,7 +33,7 @@
             <arg>bigdevelp_user</arg>
             <arg>ePVxXNZKuNbAzNOH</arg>
             <arg>site_code,channel_code,mail_type,user_id,email,good_sn,shop_code,warehouse_code,category_id,goods_link,good_title,goods_picture,purchase_time,etl_date,action_date,is_deal,state</arg>
-            <arg>string,string,string,int,string,string,string,string,int,string,string,string,string,string,string,int,int</arg>
+            <arg>string,string,string,string,string,string,string,string,int,string,string,string,string,string,string,int,int</arg>
             <arg>rerun_flag</arg>
             <arg>none</arg>
 			</java>

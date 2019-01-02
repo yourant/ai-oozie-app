@@ -1,72 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="gb_recommend_base_data-coord"
+<coordinator-app name="recommend_soa_base_gb-coord"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
-	    <timeout>-1</timeout>
+                <timeout>-1</timeout>
 		<execution>FIFO</execution>
 	</controls>
 	<datasets>
 		<dataset name="yearout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:01Z" timezone="Etc/UTC">
 			<uri-template>${YEAR}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="monthout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:01Z" timezone="Etc/UTC">
 			<uri-template>${MONTH}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="dayout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:01Z" timezone="Etc/UTC">
 			<uri-template>${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="dout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:00Z" timezone="Etc/UTC">
 			<uri-template>${YEAR}${MONTH}${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
-		<dataset name="wdout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+		<dataset name="todayout" frequency="${coord:days(1)}"
+			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
 			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
 		</dataset>
-		<dataset name="dout2" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
-			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
-		</dataset>
+		
 		<dataset name="input_data01" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/bigdata/complete_burial/jobs/log_clean/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
-		</dataset>
-		<dataset name="input_data02" frequency="${coord:days(1)}"
-			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/bigdata/ods/sqoop/gb/ods_m_gearbest_gb_order_order_goods/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
-		</dataset>
-		<dataset name="input_data03" frequency="${coord:days(1)}"
-			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/bigdata/ods/sqoop/gb/ods_m_gearbest_gb_order_order_info/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_proj_trigger/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 	</datasets>
-
-<input-events>
+	
+	<input-events>
 		<data-in name="input01" dataset="input_data01">
 			<instance>${coord:current(0)}</instance>
 		</data-in>
-		<data-in name="input02" dataset="input_data02">
-			<instance>${coord:current(0)}</instance>
-		</data-in>
-		<data-in name="input03" dataset="input_data03">
-			<instance>${coord:current(0)}</instance>
-		</data-in>
-</input-events>
-
-
+	</input-events>
+	
 	<output-events>
 		<data-out name="year" dataset="yearout">
 			<instance>${coord:current(-1)}</instance>
@@ -80,12 +58,9 @@
 		<data-out name="date" dataset="dout">
 			<instance>${coord:current(-1)}</instance>
 		</data-out>
-		<data-out name="wdate" dataset="wdout">
-  		    <instance>${coord:current(-7)}</instance>
-  	    </data-out>
-		<data-out name="date2" dataset="dout2">
-  		    <instance>${coord:current(-2)}</instance>
-  	    </data-out>
+		<data-out name="today" dataset="todayout">
+			<instance>${coord:current(0)}</instance>
+		</data-out>
 	</output-events>
 
 	<action>
@@ -104,17 +79,13 @@
 					<name>DAY</name>
 					<value>${coord:dataOut('day')}</value>
 				</property>
-				 <property>
-                    <name>DATE</name>
+				<property>
+					<name>DATE</name>
 					<value>${coord:dataOut('date')}</value>
 				</property>
 				<property>
-					<name>ADD_TIME_W</name>
-					<value>${coord:dataOut('wdate')}</value>
-				</property>
-				<property>
-					<name>ADD_TIME_2</name>
-					<value>${coord:dataOut('date2')}</value>
+					<name>TODAY</name>
+					<value>${coord:dataOut('today')}</value>
 				</property>
 			</configuration>
 		</workflow>

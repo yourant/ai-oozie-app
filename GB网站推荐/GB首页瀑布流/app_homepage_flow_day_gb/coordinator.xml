@@ -1,63 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="zaful_recommend_base_data-coord"
+<coordinator-app name="app_homepage_flow_day_gb"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
-	    <timeout>-1</timeout>
 		<execution>FIFO</execution>
 	</controls>
 	<datasets>
 		<dataset name="yearout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:01Z" timezone="Etc/UTC">
 			<uri-template>${YEAR}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="monthout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:01Z" timezone="Etc/UTC">
 			<uri-template>${MONTH}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="dayout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:01Z" timezone="Etc/UTC">
 			<uri-template>${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="dout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
+			initial-instance="2018-01-01T00:00Z" timezone="Etc/UTC">
 			<uri-template>${YEAR}${MONTH}${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
-		<dataset name="wdout" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
-			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
-		</dataset>
-		<dataset name="dout2" frequency="${coord:days(1)}"
-			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
-			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
-		</dataset>
-		<dataset name="input_data01" frequency="${coord:days(1)}"
+
+		<dataset name="todayout" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/bigdata/complete_burial/jobs/log_clean/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
-		</dataset>
-		<dataset name="input_data02" frequency="${coord:days(1)}"
-			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/bigdata/ods/sqoop/zf/ods_zaful_wf01/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
-			<done-flag></done-flag>
+			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
 		</dataset>
 	</datasets>
-
-<input-events>
-		<data-in name="input01" dataset="input_data01">
-			<instance>${coord:current(0)}</instance>
-		</data-in>
-		<data-in name="input02" dataset="input_data02">
-			<instance>${coord:current(0)}</instance>
-		</data-in>
-</input-events>
-
 	<output-events>
 		<data-out name="year" dataset="yearout">
 			<instance>${coord:current(-1)}</instance>
@@ -71,12 +45,12 @@
 		<data-out name="date" dataset="dout">
 			<instance>${coord:current(-1)}</instance>
 		</data-out>
-		<data-out name="wdate" dataset="wdout">
-  		    <instance>${coord:current(-7)}</instance>
-  	    </data-out>
-		<data-out name="date2" dataset="dout2">
-  		    <instance>${coord:current(-2)}</instance>
-  	    </data-out>
+		<data-out name="dayweek" dataset="dout">
+			<instance>${coord:current(-7)}</instance>
+		</data-out>
+		<data-out name="day2week" dataset="dout">
+			<instance>${coord:current(-14)}</instance>
+		</data-out>
 	</output-events>
 
 	<action>
@@ -95,17 +69,17 @@
 					<name>DAY</name>
 					<value>${coord:dataOut('day')}</value>
 				</property>
-				 <property>
-                    <name>DATE</name>
+				<property>
+					<name>DATE</name>
 					<value>${coord:dataOut('date')}</value>
 				</property>
 				<property>
-					<name>ADD_TIME_W</name>
-					<value>${coord:dataOut('wdate')}</value>
+					<name>DAYWEEK</name>
+					<value>${coord:dataOut('dayweek')}</value>
 				</property>
 				<property>
-					<name>ADD_TIME_2</name>
-					<value>${coord:dataOut('date2')}</value>
+					<name>DAY2WEEK</name>
+					<value>${coord:dataOut('day2week')}</value>
 				</property>
 			</configuration>
 		</workflow>
