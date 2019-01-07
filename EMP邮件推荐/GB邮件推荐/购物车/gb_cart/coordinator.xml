@@ -34,7 +34,7 @@
 		</dataset>
 		<dataset name="input_data01" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/dw_gearbest_edm/gb_emp_email_01/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>/bigdata/dm/oozie/emp/dm_emp_gb_email_cart/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
         </dataset>
 	</datasets>

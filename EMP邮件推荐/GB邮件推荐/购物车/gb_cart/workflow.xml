@@ -25,7 +25,7 @@
                </property>
 				</configuration>
 						<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
-            <arg>/user/hive/warehouse/dw_gearbest_edm.db/gb_emp_email_cart/year=${YEAR}/month=${MONTH}/day=${DAY}</arg>
+            <arg>/bigdata/dm/emp/dm_emp_gb_email_cart/year=${YEAR}/month=${MONTH}/day=${DAY}</arg>
             <arg>172.31.27.16</arg>
             <arg>27017</arg>
             <arg>recommender_online</arg>
