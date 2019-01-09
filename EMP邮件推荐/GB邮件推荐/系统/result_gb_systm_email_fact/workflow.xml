@@ -106,7 +106,7 @@
             <name>EmailResult2Hbase(result_gb_systm_email_fact)</name> 
             <class>com.glbg.ai.recommend_gb.EmailResult2Hbase</class> 
             <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/result_gb_systm_email_fact/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
-            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 100 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000</spark-opts> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 6g --driver-memory 2g --driver-cores 2 --num-executors 100 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
 			<arg>apl_result_gb_systm_email_fact</arg>
 			<arg>dw_gearbest_recommend.apl_result_gb_systm_email_fact</arg>
         </spark> 
