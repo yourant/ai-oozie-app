@@ -213,7 +213,7 @@
             <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
 			<arg>${YEAR}${MONTH}${DAY}</arg>
 			<arg>zaful_recommend_base_data</arg>
-			<arg>email_zaful_pc_event_info,email_zaful_goods_event_info</arg>
+			<arg>email_zaful_pc_event_info,email_zaful_goods_event_info,email_emp_zaful_onsale</arg>
         </spark> 
         <ok to="end"/>
         <error to="failed_mail"/>
