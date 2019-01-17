@@ -259,7 +259,7 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
-			<arg>http://172.31.27.16:5061/gb_offline_recommender</arg>
+			<arg>http://172.31.21.188:5061/gb_offline_recommender</arg>
 			<arg>offline_email_gb</arg>
 		</java>
 		<ok to="result_gb_email_create_to_hive" />
