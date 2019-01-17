@@ -39,7 +39,7 @@
 		</dataset>
 		<dataset name="input_data01" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
-			<uri-template>/bigdata/complete_burial/jobs/log_clean/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>/bigdata/log_clean/job/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="input_data02" frequency="${coord:days(1)}"
