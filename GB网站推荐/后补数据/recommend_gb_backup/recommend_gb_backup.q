@@ -69,7 +69,7 @@ AND n.lang = x.lang
 ;
  
 
---过滤网采商品
+--过滤网采商品/禁售商品
 INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_uniqlang_filtered  SELECT
 	n.*
 FROM
@@ -86,6 +86,8 @@ WHERE
 					ods.ods_m_gearbest_base_goods_goods a
 				WHERE
 					a.recommended_level = 14
+				UNION ALL
+				select b.goods_sn as good_sn from  dw_gearbest_recommend.sku_not_sale b				
 			) x
 	)
 ;
