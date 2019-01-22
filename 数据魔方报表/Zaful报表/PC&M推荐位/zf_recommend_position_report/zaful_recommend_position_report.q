@@ -14,6 +14,7 @@ SET hive.merge.mapredfiles= true;
 SET hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 SET hive.merge.size.per.task=256000000;
 SET hive.exec.parallel = true; 
+set hive.support.concurrency=false;
 
 --输出结果表
 CREATE TABLE IF NOT EXISTS dw_zaful_recommend.zaful_recommend_position_report(
