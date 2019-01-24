@@ -80,7 +80,7 @@ SELECT
 	CASE
 WHEN (x.ctr < 0.003) THEN
 	'black'
-WHEN (0.003 >= x.ctr AND x.ctr < 0.006) THEN
+WHEN (0.003 <= x.ctr AND x.ctr < 0.006) THEN
 	'gray'
 WHEN (x.ctr >= 0.006) THEN
 	'normal'
