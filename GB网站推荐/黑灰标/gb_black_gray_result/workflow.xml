@@ -23,7 +23,7 @@
              <param>MONTH=${MONTH}</param>
              <param>DAY=${DAY}</param>
         </hive>
-        <ok to="data_push"/>
+        <ok to="end"/>
         <error to="failed_mail"/>
     </action> 
 
