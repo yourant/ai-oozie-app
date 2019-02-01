@@ -313,6 +313,16 @@ from
       concat_ws(year, month, day) = '${ADD_TIME}'
       and site='zaful'
       AND user_id rlike '^[0-9]+$'
+      union all
+      select
+      cookie_id as glb_od,
+      user_id as glb_u
+      from 
+      ods.ods_php_burial_log
+      where
+      concat_ws(year, month, day) = '${ADD_TIME}'
+      and site='zaful'
+      AND user_id rlike '^[0-9]+$'
   ) m
 GROUP BY
   m.glb_od,
