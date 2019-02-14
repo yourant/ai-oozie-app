@@ -78,11 +78,11 @@ SELECT
     x.exp_num,
     x.click_num,
 	CASE
-WHEN (x.ctr < 0.003) THEN
+WHEN (x.ctr <= 0) THEN
 	'black'
-WHEN (0.003 <= x.ctr AND x.ctr < 0.006) THEN
+WHEN (0 < x.ctr AND x.ctr <= 0.001) THEN
 	'gray'
-WHEN (x.ctr >= 0.006) THEN
+WHEN (x.ctr > 0.001) THEN
 	'normal'
     ELSE 'black'
 END AS flag
