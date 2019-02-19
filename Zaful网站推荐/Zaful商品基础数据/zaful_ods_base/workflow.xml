@@ -1,0 +1,187 @@
+<workflow-app name="zaful_ods_base-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="zaful_ods_base" />
+     <action name="zaful_ods_base">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>zaful_ods_base.q</script>
+             <param>DATE=${DATE}</param>
+             <param>WDATE=${WDATE}</param>
+        </hive>
+        <ok to="apl_result_hotsell_cat_zaful_fact_to_redis"/>
+        <error to="failed_mail"/>
+    </action> 
+
+<action name="apl_result_hotsell_cat_zaful_fact_to_redis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/tmp.db/apl_result_hotsell_cat_zaful_fact/</arg>
+            <arg>/import-to-redis/apl_result_hotsell_cat_zaful_fact_new</arg>
+            <arg>tmp</arg>
+            <arg>apl_result_hotsell_cat_zaful_fact</arg>
+            <arg>zaful_category_hot_sale</arg>
+            <arg>catid#pipelinecode#lang</arg>
+		</java>
+		<ok to="apl_result_newgoods_zaful_fact_to_redis" />
+		<error to="failed_mail" />
+	</action>
+	
+	<action name="apl_result_newgoods_zaful_fact_to_redis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/tmp.db/apl_result_newgoods_zaful_fact/</arg>
+            <arg>/import-to-redis/apl_result_newgoods_zaful_fact_new</arg>
+            <arg>tmp</arg>
+            <arg>apl_result_newgoods_zaful_fact</arg>
+            <arg>zaful_new_goods</arg>
+            <arg>catid#pipelinecode#lang</arg>
+		</java>
+		<ok to="apl_result_hotsell_all_zaful_fact_to_redis" />
+		<error to="failed_mail" />
+	</action>
+	
+	<action name="apl_result_hotsell_all_zaful_fact_to_redis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/tmp.db/apl_result_hotsell_all_zaful_fact/</arg>
+            <arg>/import-to-redis/apl_result_hotsell_all_zaful_fact_new</arg>
+            <arg>tmp</arg>
+            <arg>apl_result_hotsell_all_zaful_fact</arg>
+            <arg>zaful_hot_sale</arg>
+            <arg>pipelinecode#lang</arg>
+		</java>
+		<ok to="apl_zaful_goods_info_tohbase" />
+		<error to="failed_mail" />
+	</action>
+
+    
+<action name="apl_zaful_goods_info_tohbase">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HBaseRunner(apl_zaful_goods_info)</name> 
+            <class>com.glbg.ai.recommend_gb.CommonResult2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_zaful_recommend/zaful_ods_base/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 10 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=200 --conf spark.default.parallelism=200 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+            <arg>apl_zaful_goods_info</arg>
+            <arg>tmp.apl_zaful_result_attr_fact</arg>
+            <arg>0,7,10</arg>
+        </spark>  
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
+
+
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com</to>
+			<subject>zaful_ods_base-wf failed</subject>
+			<body>zaful_ods_base-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>
