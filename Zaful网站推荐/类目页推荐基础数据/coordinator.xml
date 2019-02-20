@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="zaful_pc_list_plat_country-coord"
+<coordinator-app name="zaful_pc_list_plat_country_SNB25641_3"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
-	    <timeout>-1</timeout>
+	    <timeout>60</timeout>
 		<execution>FIFO</execution>
 	</controls>
 	<datasets>
