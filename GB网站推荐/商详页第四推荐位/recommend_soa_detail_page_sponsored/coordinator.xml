@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="recommend_soa_detail_page_sponsored-coord"
+<coordinator-app name="recommend_soa_detail_page_sponsored_SNB25641_3"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
@@ -38,11 +38,7 @@
 			<done-flag></done-flag>
                </dataset>
 	</datasets>
-<input-events>
-		<data-in name="input01" dataset="input_data01">
-			<instance>${coord:current(0)}</instance>
-		</data-in>
-</input-events>
+
 	<output-events>
 		<data-out name="year" dataset="yearout">
 			<instance>${coord:current(-1)}</instance>

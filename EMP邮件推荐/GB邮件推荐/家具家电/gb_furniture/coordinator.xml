@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="gb_furniture-coord"
+<coordinator-app name="gb_furniture_SNB25641_3"
 	frequency="${coord:days(14)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
