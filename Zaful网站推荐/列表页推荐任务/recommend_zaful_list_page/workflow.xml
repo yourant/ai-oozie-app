@@ -1,0 +1,564 @@
+<workflow-app name="recommend_zaful_list_page-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="zaful_list_plat_country" />
+	<action name="prepare">
+		<shell xmlns="uri:oozie:shell-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<exec>${PREPARE_EXEC}</exec>
+			<argument>${done_flag_dir}</argument>
+			<argument>${TODAY}</argument>
+			<file>${wf_application_path}/${PREPARE_EXEC}</file>
+		</shell>
+		<ok to="hive_to_mongodb" />
+		<error to="failed_mail" />
+	</action>
+    <action name="zaful_list_plat_country">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+            </configuration>
+            <script>zaful_list_plat_country.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>ADD_TIME=${DATE}</param>
+			<param>ADD_TIME_W=${ADD_TIME_W}</param>
+        </hive>
+        <ok to="zaful_list_plat"/>
+        <error to="failed_mail"/>
+    </action>
+    <action name="zaful_list_plat">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+            </configuration>
+            <script>zaful_list_plat.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>ADD_TIME=${DATE}</param>
+			
+        </hive>
+        <ok to="zaful_list_source_sku"/>
+        <error to="failed_mail"/>
+    </action>
+    
+    <action name="zaful_list_source_sku">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME_W</name>
+				  <value>${ADD_TIME_W}</value>
+				</property>
+            </configuration>
+            <script>zaful_list_source_sku.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>ADD_TIME=${DATE}</param>
+			<param>ADD_TIME_W=${ADD_TIME_W}</param>
+        </hive>
+        <ok to="zaful_list_plat_to_mongodb"/>
+        <error to="failed_mail"/>
+    </action>
+	<action name="zaful_list_plat_to_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_list_plat/pdate=${YEAR}${MONTH}${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_list_plat</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>cat_id,goods_sn,pv_count,ipv_count,favorite_count,bag_count,order_number,goods_number,timestamp,date,plat</arg>
+            <arg>string,string,int,int,int,int,int,int,int,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="zaful_list_plat_country_to_mongodb" />
+		<error to="failed_mail" />
+	</action>
+	<action name="zaful_list_plat_country_to_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_list_plat_country/pdate=${YEAR}${MONTH}${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_list_plat_country</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>cat_id,country,goods_sn,pv_count,ipv_count,favorite_count,bag_count,order_number,goods_number,timestamp,date,plat</arg>
+            <arg>string,string,string,int,int,int,int,int,int,int,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="zaful_list_source_sku_to_mongodb" />
+		<error to="failed_mail" />
+	</action>
+	<action name="zaful_list_source_sku_to_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_list_source_sku_fact/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_list_source_sku</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,is_new,node1,node2,node3,node4,color_code,shop_price,is_more_color,is_priority_dispaching,add_time,review_count,avg_rate</arg>
+            <arg>string,int,string,string,string,string,string,decimal,string,int,int,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="zaful_list_source_sku_to_delete_mongodb" />
+		<error to="failed_mail" />
+	</action>
+	<action name="zaful_list_source_sku_to_delete_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+               <property>
+				  <name>DEL_DATE</name>
+				  <value>${DEL_DATE}</value>
+               </property>
+               
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_list_source_sku_date</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_list_source_sku</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,is_new,node1,node2,node3,node4</arg>
+            <arg>string,int,string,string,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${DEL_DATE}</arg>
+		</java>
+		<ok to="zaful_list_source_sku_to_mongodb_1" />
+		<error to="failed_mail" />
+	</action>
+	
+	
+	
+	<action name="zaful_list_source_sku_to_mongodb_1">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_list_source_sku_fact_extend/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_list_source_sku_1</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,goods_spu,is_new,node1,node2,node3,node4,color_code,shop_price,is_more_color,is_priority_dispaching,add_time,review_count,avg_rate,sku_review_count,spu_review_count,goods_img,goods_title</arg>
+            <arg>string,string,int,string,string,string,string,string,decimal,string,int,int,string,string,int,int,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="zaful_list_source_sku_1_to_delete_mongodb" />
+		<error to="failed_mail" />
+	</action>
+	<action name="zaful_list_source_sku_1_to_delete_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+               <property>
+				  <name>DEL_DATE</name>
+				  <value>${DEL_DATE}</value>
+               </property>
+               
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_list_source_sku_date_1</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_list_source_sku_1</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,is_new,node1,node2,node3,node4</arg>
+            <arg>string,int,string,string,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${DEL_DATE}</arg>
+		</java>
+		<ok to="apl_sku_lang_fact_to_mongodb" />
+		<error to="failed_mail" />
+	</action>
+	
+	
+	<action name="apl_sku_lang_fact_to_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+               <property>
+				  <name>DEL_DATE</name>
+				  <value>${DEL_DATE}</value>
+               </property>               
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/apl_sku_lang_fact</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>apl_sku_lang_fact</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,goodsid,catid,goodstitle,gridurl,pipelinecode,shopcode,webgoodsn,lang,warecode,reviewcount,avgrate,shopprice,favoritecount,goodsnum,imgurl,thumburl,thumbextendurl,urltitle</arg>
+            <arg>string,int,int,string,string,string,string,string,string,int,int,double,double,int,int,string,string,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="apl_sku_lang_fact_to_delete_mongodb" />
+		<error to="failed_mail" />
+	</action>
+	<action name="apl_sku_lang_fact_to_delete_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+               <property>
+				  <name>DEL_DATE</name>
+				  <value>${DEL_DATE}</value>
+               </property>              
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/apl_sku_lang_fact_date</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>apl_sku_lang_fact</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,goodsid,catid,goodstitle,gridurl,pipelinecode,shopcode,webgoodsn,lang,warecode,reviewcount,avgrate,shopprice,favoritecount,goodsnum,imgurl,thumburl,thumbextendurl,urltitle</arg>
+            <arg>string,int,int,string,string,string,string,string,string,int,int,double,double,int,int,string,string,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${DEL_DATE}</arg>
+		</java>
+		<ok to="wait_mongodb" />
+		<error to="failed_mail" />
+	</action>
+	<action name="wait_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
+			<arg>http://172.31.27.16:5050/zaful_offline_recommender</arg>
+			<arg>offline_list_rank</arg>
+		</java>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+	<action name="succeeded">
+		<shell xmlns="uri:oozie:shell-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<exec>${DONE_FLAG_EXEC}</exec>
+			<argument>${done_flag_dir}</argument>
+			<argument>${TODAY}</argument>
+			<file>${wf_application_path}/${DONE_FLAG_EXEC}</file>
+		</shell>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>bigdata@globalegrow.com
+			</to>
+			<subject>recommend_zaful_list_page-wf failed</subject>
+			<body>recommend_zaful_list_page-wf failed ;${timestamp()} </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>
+
