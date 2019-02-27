@@ -367,7 +367,7 @@
 			</main-class>
 			<arg>/user/hive/warehouse/dw_zaful_recommend.db/apl_result_detail_cookie_zaful_abtest_3_fact</arg>
 			<arg>goodssn,goodsid,catid,goodstitle,goodscolor,goodssize,gridurl,pipelinecode,shopcode,webgoodsn,lang,warecode,reviewcount,avgrate,shopprice,favoritecount,goodsnum,imgurl,thumburl,thumbextendurl,urltitle,score</arg>
-			<arg>10</arg>
+			<arg>7,10</arg>
 			<arg>apl_result_detail_cookie_zaful_abtest_3_fact</arg>
 			<arg>21</arg>
 		</java>
@@ -416,9 +416,54 @@
 			<arg>apl_result_detail_page_abtest2_fact</arg>
 			<arg>22</arg>
 		</java>
-		<ok to="end" />
+		<ok to="apl_result_detail_page_abtest2_fact_tohbase_new" />
 		<error to="failed_mail" />
 	</action> 
+
+
+<action name="apl_result_detail_page_abtest2_fact_tohbase_new">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HBaseRunner(apl_result_detail_page_abtest2_fact)</name> 
+            <class>com.glbg.ai.recommend_gb.RecommendResult2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_zaful_recommend/recommend_zaful_baseinfo/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 10 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=200 --conf spark.default.parallelism=200 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+            <arg>apl_result_detail_page_abtest2_fact</arg>
+            <arg>dw_zaful_recommend.zaful_detailpage_app_rule_final_abtest_rank</arg>
+            <arg>0</arg>
+            <arg>${DATE}</arg>
+            <arg>NO</arg>
+            <arg>NO</arg>
+        </spark>  
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
+
 	<action name="succeeded">
 		<shell xmlns="uri:oozie:shell-action:0.2">
 			<job-tracker>${jobTracker}</job-tracker>

@@ -172,72 +172,59 @@ FROM(
 		b.is_on_sale = 1  AND b.is_delete = 0  AND b.goods_number > 0 
 	)T
 ;
+
+
 INSERT OVERWRITE TABLE apl_result_detail_cookie_zaful_abtest_3_fact
 SELECT
-	a.goodssn,
-	b.goodsid,
-	b.catid,
-	b.goodstitle,
-	c.goods_color,
-	c.goods_size,
-	b.gridurl,
-	'',
-	'',
-	'',
-	b.lang,
-	'',
-	'',
-	'',
-	'',
-	'',
-	'',
-	b.imgurl,
-	b.thumburl,
-	'',
-	b.urltitle,
-	a.score
+	NVL(a.goodssn,'')              ,
+	NVL(b.goodsid,0)              ,
+	NVL(b.catid,0)                ,
+	NVL(b.goodstitle,'')           ,
+	NVL(b.goodscolor,'')           ,
+	NVL(b.goodssize,'')           ,
+	NVL(b.gridurl,'')              ,
+	NVL(b.pipelinecode,'')        ,
+	NVL(b.shopcode,'')             ,
+	NVL(b.webgoodSn,'')            ,
+	NVL(b.lang,'en')                 ,
+	NVL(b.warecode,0)             ,
+	NVL(b.reviewcount,0)          ,
+	NVL(b.avgrate,0)              ,
+	NVL(b.shopprice,0)            ,
+	NVL(b.favoritecount,0)        ,
+	NVL(b.goodsnum,0)             ,
+	NVL(b.imgurl,'')               ,
+	NVL(b.thumburl,'')             ,
+	NVL(b.thumbextendUrl,'')       ,
+	NVL(b.urltitle,'')   ,
+	NVL(a.score,0)  score
 FROM
 	apl_result_detail_cookie_zaful_abtest_3_fact a
-LEFT JOIN
-	apl_sku_lang_fact  b
+JOIN
+	tmp.apl_zaful_result_attr_fact  b
 ON
 	a.goodssn = b.goodssn
-LEFT JOIN
-	apl_sku_color_size_fact c
-ON
-	a.goodssn = c.goods_sn AND c.lang = b.lang
-WHERE
-	b.lang != ''
-;	
-
-
-
-	
-INSERT OVERWRITE TABLE  apl_result_detail_cookie_zaful_abtest_3_fact
-SELECT
-	NVL(goodssn,'')              ,
-	NVL(goodsid,0)              ,
-	NVL(catid,0)                ,
-	NVL(goodstitle,'')           ,
-	NVL(goodscolor,'')           ,
-	NVL(goodssize,'')           ,
-	NVL(gridurl,'')              ,
-	NVL(pipelinecode,'')        ,
-	NVL(shopcode,'')             ,
-	NVL(webgoodSn,'')            ,
-	NVL(lang,'en')                 ,
-	NVL(warecode,0)             ,
-	NVL(reviewcount,0)          ,
-	NVL(avgrate,0)              ,
-	NVL(shopprice,0)            ,
-	NVL(favoritecount,0)        ,
-	NVL(goodsnum,0)             ,
-	NVL(imgurl,'')               ,
-	NVL(thumburl,'')             ,
-	NVL(thumbextendUrl,'')       ,
-	NVL(urltitle,'')   ,
-	NVL(score,0)  score
-FROM
-	apl_result_detail_cookie_zaful_abtest_3_fact
-ORDER BY 
-	score DESC;
+GROUP BY 
+    NVL(a.goodssn,'')              ,
+	NVL(b.goodsid,0)              ,
+	NVL(b.catid,0)                ,
+	NVL(b.goodstitle,'')           ,
+	NVL(b.goodscolor,'')           ,
+	NVL(b.goodssize,'')           ,
+	NVL(b.gridurl,'')              ,
+	NVL(b.pipelinecode,'')        ,
+	NVL(b.shopcode,'')             ,
+	NVL(b.webgoodSn,'')            ,
+	NVL(b.lang,'en')                 ,
+	NVL(b.warecode,0)             ,
+	NVL(b.reviewcount,0)          ,
+	NVL(b.avgrate,0)              ,
+	NVL(b.shopprice,0)            ,
+	NVL(b.favoritecount,0)        ,
+	NVL(b.goodsnum,0)             ,
+	NVL(b.imgurl,'')               ,
+	NVL(b.thumburl,'')             ,
+	NVL(b.thumbextendUrl,'')       ,
+	NVL(b.urltitle,'')   ,
+	NVL(a.score,0)
+;
