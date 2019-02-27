@@ -1,0 +1,1 @@
+hdfs dfs -mkdir $1/$2
