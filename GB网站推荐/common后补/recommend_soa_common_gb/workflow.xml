@@ -135,6 +135,7 @@
 		<ok to="apl_top10_category_fact" />
 		<error to="failed_mail" />
 	</action>
+
 	<action name="apl_top10_category_fact">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
