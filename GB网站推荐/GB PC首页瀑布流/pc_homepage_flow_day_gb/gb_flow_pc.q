@@ -39,7 +39,7 @@ SELECT
 FROM
 	goods_info_mid1
 WHERE
-	(level_cnt = 3 AND level_3 in (11372,11380,12056)) OR (level_cnt = 2 AND level_2 in (11502,11281,12433,12181,11546));
+	(level_3 in (11372,11380,12056)) OR (level_2 in (11502,11281,12433,12181,11546));
 
 
 CREATE TABLE IF NOT EXISTS result_gb_sale_cat_2week_bf_pc
