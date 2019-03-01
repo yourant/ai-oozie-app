@@ -585,3 +585,32 @@ ON t1.plat = t7.plat AND t1.country = t7.country AND t1.cat_id = t7.cat_id AND t
 LEFT JOIN dw_zaful_recommend.zaful_pc_list_sales_tmp t8
 ON t1.plat = t8.plat AND t1.country = t8.country AND t1.cat_id = t8.cat_id AND t1.goods_sn = t8.goods_sn
 ;
+
+
+--将国家维度进行汇总
+INSERT OVERWRITE TABLE dw_zaful_recommend.zaful_pc_list_plat_global partition(pdate = '${ADD_TIME}')
+SELECT 
+    plat                  , 
+    cat_id                , 
+  	goods_sn              ,
+  	sum(pv_count)         ,
+    sum(ipv_count)        ,
+    sum(bag_count)        ,
+    sum(favorite_count)   ,
+    sum(order_num)        ,
+    sum(purchase_num)     ,
+    sum(gmv)              ,
+    sum(sales)            ,
+    price                 ,
+    discount_mark         ,  
+   	timestamp 
+FROM   dw_zaful_recommend.zaful_pc_list_plat_country
+WHERE pdate = '${ADD_TIME}'   
+GROUP BY 
+    plat           , 
+    cat_id         , 
+  	goods_sn       ,
+    price          ,
+    discount_mark  ,  
+   	timestamp
+; 

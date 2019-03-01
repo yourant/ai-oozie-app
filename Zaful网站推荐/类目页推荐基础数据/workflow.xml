@@ -57,10 +57,48 @@
             <arg>etl_date</arg>
             <arg>${YEAR}${MONTH}${DAY}</arg>
 			</java>
-		<ok to="doneflag_toredis" />
+		<ok to="hive_to_mongodb2" />
 		<error to="failed_mail" />
 	</action>
 
+ <action name="hive_to_mongodb2">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+				</configuration>
+						<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/zaful_pc_list_plat_global/pdate=${YEAR}${MONTH}${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_pc_list_plat_global</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>plat,cat_id,goods_sn,pv_count,ipv_count,bag_count,favorite_count,order_num,purchase_num,gmv,sales,price,discount_mark,timestamp</arg>
+            <arg>string,string,string,int,int,int,int,int,int,decimal,decimal,string,string,int</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+			</java>
+		<ok to="doneflag_toredis" />
+		<error to="failed_mail" />
+	</action>
 	
 <action name="doneflag_toredis">
          <spark xmlns="uri:oozie:spark-action:0.1">
@@ -92,7 +130,7 @@
             <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
 			<arg>${YEAR}${MONTH}${DAY}</arg>
 			<arg>zaful_recommend_base_data</arg>
-			<arg>zaful_pc_list_plat_country</arg>
+			<arg>zaful_pc_list_plat_country,zaful_pc_list_plat_global</arg>
         </spark> 
         <ok to="end"/>
         <error to="failed_mail"/>
