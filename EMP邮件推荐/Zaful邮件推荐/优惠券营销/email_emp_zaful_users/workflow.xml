@@ -58,7 +58,7 @@
             <arg>etl_date</arg>
             <arg>none</arg>
 		</java>
-		<ok to="finished2mongodb" />
+		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />
 	</action>
      
