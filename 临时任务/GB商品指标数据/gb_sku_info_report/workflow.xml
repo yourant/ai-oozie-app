@@ -60,7 +60,7 @@
             <arg>etl_date</arg>
             <arg>${YEAR}${MONTH}${DAY}</arg>
 			</java>
-		<ok to="wait_mongodb" />
+		<ok to="end" />
 		<error to="failed_mail" />
 	</action>
   
