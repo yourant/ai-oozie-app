@@ -1,0 +1,538 @@
+<workflow-app name="recommend_gb_detail_abtest1-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="add_partition_result_emp_data" />
+	<action name="add_partition_result_emp_data">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+            </configuration>
+            <script>add_partition_result_emp_data.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>DATE=${DATE}</param>
+        </hive>
+        <ok to="fork_1"/>
+        <error to="failed_mail"/>
+   	    </action>
+		<action name="emp_data">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property> 
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+            </configuration>
+            <script>emp_data.q</script>
+            <param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>DATE=${DATE}</param>	
+        </hive>
+        <ok to="gb_order_order_goods_detail_exp_to_mongodb"/>
+        <error to="failed_mail"/>
+   	    </action>
+ <action name="gb_order_order_goods_detail_exp_to_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property> <name>mapred.job.queue.name</name> <value>${queueName}</value> 
+					</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+
+				<property>
+					<name>mapreduce.job.queuename</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_order_order_goods_detail_exp/pdate=${YEAR}${MONTH}${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>gb_order_order_goods_detail_exp</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>order_sn,goods_sn,user_id,update_time</arg>
+            <arg>string,string,int,int</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="gb_pc_event_info_detail_exp_to_mongodb" />
+		<error to="failed_mail" />
+	</action>
+   	    
+	<action name="gb_pc_event_info_detail_exp_to_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property> <name>mapred.job.queue.name</name> <value>${queueName}</value> 
+					</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+
+				<property>
+					<name>mapreduce.job.queuename</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_pc_event_info_detail_exp_date/pdate=${YEAR}${MONTH}${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>gb_pc_event_info_detail_exp</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>goods_sn,glb_oi,glb_u,glb_od,glb_w,glb_x,glb_tm,add_time,year,month,day</arg>
+            <arg>string,string,string,string,int,string,long,int,string,string,string</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="fork_1" />
+		<error to="failed_mail" />
+	</action>
+
+   <fork name = "fork_1">
+   		<path start="wait_mongodb1" />
+   		<path start="wait_mongodb2" />
+			<path start="wait_mongodb3" />
+   </fork>
+
+
+	<action name="wait_mongodb1">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
+			<arg>http://aialgo.logsss.com/gb_detail_recommender</arg>
+			<arg>gb_detail_1</arg>
+		</java>
+		<ok to="gb_result_detail_page_gtq_to_hive" />
+		<error to="failed_mail" />
+	</action>
+
+	
+	<action name="gb_result_detail_page_gtq_to_hive">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mongotohive.MongoToHiveNewMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_result_detail_page_gtq/year=${YEAR}/month=${MONTH}/day=${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>gb_result_detail_page_gtq</arg>
+		</java>
+		<ok to="apl_gb_result_detail_page_2_abtest1_fact_tohbase" />
+		<error to="failed_mail" />
+	</action>
+
+
+<action name="apl_gb_result_detail_page_2_abtest1_fact_tohbase">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HBaseRunner(apl_gb_result_detail_page_2_abtest1_fact)</name> 
+            <class>com.glbg.ai.recommend_gb.Detail1Result2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/recommend_gb_detail_abtest1/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 100 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+           <arg>goods_info_test3</arg>            
+           <arg>${DATE}</arg>
+           <arg>dw_gearbest_recommend.gb_result_detail_page_gtq</arg>
+        </spark>  
+        <ok to="join_1"/>
+        <error to="failed_mail"/>
+    </action>
+
+    <action name="wait_mongodb2">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
+			<arg>http://aialgo.logsss.com/gb_detail_recommender</arg>
+			<arg>gb_detail_2</arg>
+		</java>
+		<ok to="gb_result_detail_1_page_gtq_to_hive" />
+		<error to="failed_mail" />
+	</action>
+
+	
+
+<action name="gb_result_detail_1_page_gtq_to_hive">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mongotohive.MongoToHiveNewMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_result_detail_1_page_gtq/year=${YEAR}/month=${MONTH}/day=${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>gb_result_detail_1_page_gtq</arg>
+		</java>
+		<ok to="apl_gb_result_detail_page_1_abtest1_fact_tohbase" />
+		<error to="failed_mail" />
+	</action>
+
+	
+
+<action name="apl_gb_result_detail_page_1_abtest1_fact_tohbase">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HBaseRunner(apl_gb_result_detail_page_1_abtest1_fact)</name> 
+            <class>com.glbg.ai.recommend_gb.Detail1Result2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/recommend_gb_detail_abtest1/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 100 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+            <arg>apl_gb_result_detail_page_1_abtest1_fact</arg>
+            <arg>${DATE}</arg>
+             <arg>dw_gearbest_recommend.gb_result_detail_1_page_gtq</arg>
+        </spark>  
+        <ok to="join_1"/>
+        <error to="failed_mail"/>
+    </action>
+
+	 <action name="wait_mongodb3">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
+			<arg>http://aialgo.logsss.com/gb_detail_recommender</arg>
+			<arg>gb_detail_3</arg>
+		</java>
+		<ok to="gb_result_detail_3_page_gtq_to_hive" />
+		<error to="failed_mail" />
+	</action>
+
+
+
+<action name="gb_result_detail_3_page_gtq_to_hive">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mongotohive.CookieMongo2HiveMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/gb_result_detail_3_page_gtq/year=${YEAR}/month=${MONTH}/day=${DAY}/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>gb_result_detail_3_page_gtq</arg>
+		</java>
+		<ok to="apl_gb_result_detail_page_3_fact_tohbase" />
+		<error to="failed_mail" />
+	</action>
+
+
+<action name="apl_gb_result_detail_page_3_fact_tohbase">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HBaseRunner(apl_gb_result_detail_page_3_fact)</name> 
+            <class>com.glbg.ai.recommend_gb.Detail3Result2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/recommend_gb_detail_abtest1/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 6g --driver-memory 2g --driver-cores 2 --num-executors 100 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+            <arg>apl_gb_result_detail_page_3_fact</arg>
+            <arg>${DATE}</arg>
+            <arg>dw_gearbest_recommend.gb_result_detail_3_page_gtq</arg>
+						<arg>5</arg>
+        </spark>  
+        <ok to="join_1"/>
+        <error to="failed_mail"/>
+    </action>
+
+
+
+     <join name = "join_1" to = "end" />
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>bigdata@globalegrow.com
+			</to>
+			<subject>recommend_gb_detail_abtest1 failed</subject>
+			<body>recommend_gb_detail_abtest1 failed ;${timestamp()} </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>
