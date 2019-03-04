@@ -186,7 +186,8 @@ FROM(
 	JOIN
 		goods_info_result_uniqlang t3
 	ON
-		t1.pipeline_code = t3.pipeline_code AND t1.lang = t3.lang and t1.goods_sn = t3.good_sn and t1.vcode = t3.v_wh_code
+		t1.pipeline_code = t3.pipeline_code AND t1.lang = t3.lang and t1.goods_sn = t3.good_sn 
+		--and t1.vcode = t3.v_wh_code
 	)t1
 JOIN(
 	SELECT
