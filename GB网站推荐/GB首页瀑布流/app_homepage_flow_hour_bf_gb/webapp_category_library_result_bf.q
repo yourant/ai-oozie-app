@@ -98,7 +98,7 @@ from(
 			tab_id,
 			browse_product 
 		from top_goods_settings  
-				lateral view explode(split(goods_sku, ',')) myTable as browse_product where position = 'webapp_category_library' and is_show = 1 and current_timestamp() between start_time and end_time 
+				lateral view explode(split(goods_sku, ',')) myTable as browse_product where position in  ('webapp_category_library','index_recommend')  and is_show = 1 and current_timestamp() between start_time and end_time 
 			)a
 		)tmp
 	)tmp
@@ -184,7 +184,7 @@ FROM(
 	FROM
 		webapp_category_library_info_order t1
 	JOIN
-		goods_info_result_rec t3
+		goods_info_result_uniqlang t3
 	ON
 		t1.pipeline_code = t3.pipeline_code AND t1.lang = t3.lang and t1.goods_sn = t3.good_sn and t1.vcode = t3.v_wh_code
 	)t1
