@@ -261,7 +261,7 @@ FROM
 GROUP BY
 	x.platform,
 	x.glb_t,
-	x.glb_od
+	x.glb_od,
     x.glb_dc;
 
 --订单表结果数据
