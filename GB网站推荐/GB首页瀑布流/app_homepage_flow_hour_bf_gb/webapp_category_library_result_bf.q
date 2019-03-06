@@ -168,7 +168,7 @@ FROM(
 		t3.good_title,
 		t3.id cat_id,
 		t3.lang,
-		t1.v_wh_code,
+		t1.vcode as v_wh_code,
 		t3.total_num,
 		t3.avg_score,
 		t3.shop_price,
