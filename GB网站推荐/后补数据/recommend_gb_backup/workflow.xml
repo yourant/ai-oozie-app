@@ -1,5 +1,5 @@
 <workflow-app name="recommend_gb_backup-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="recommend_gb_backup_hive" />
+	<start to="pipeline_language_import" />
 	    <action name="pipeline_language_import">
         <sqoop xmlns="uri:oozie:sqoop-action:0.2">
             <job-tracker>${jobTracker}</job-tracker>
