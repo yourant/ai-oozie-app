@@ -98,7 +98,9 @@ FROM(
 	ON
 		t5.category_id = t4.id
        JOIN
-		stg_gb_goods.goods_pipeline_relation t6
+	   (select good_sn,pipeline_code from ods.ods_m_gearbest_gb_goods_goods_pipeline_relation
+	   where dt='${DATE}')
+		t6
 	ON
 		t1.good_sn = t6.good_sn AND t3.pipeline_code = t6.pipeline_code
 	WHERE
