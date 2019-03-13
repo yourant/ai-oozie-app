@@ -266,7 +266,7 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
-			<arg>http://172.31.27.16:5050/zaful_offline_recommender</arg>
+			<arg>http://aialgo.logsss.com/zaful_offline_recommender</arg>
 			<arg>offline_detail</arg>
 		</java>
 		<ok to="wait_mongodb_cart" />
@@ -295,7 +295,7 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
-			<arg>http://172.31.27.16:5050/zaful_offline_recommender</arg>
+			<arg>http://aialgo.logsss.com/zaful_offline_recommender</arg>
 			<arg>offline_cart</arg>
 		</java>
 		<ok to="result_datail_page_to_hive" />
@@ -666,7 +666,7 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
-			<arg>http://172.31.31.152:5801/zaful_offline_recommender</arg>
+			<arg>http://aialgo.logsss.com/zaful_app_detail_recommender</arg>
 			<arg>offline_detail_abtestv4</arg>
 		</java>
 		<ok to="result_detail_page_abtest_v4" />
@@ -795,10 +795,54 @@
 			<arg>apl_result_detail_page_abtest3_fact</arg>
 			<arg>23</arg>
 		</java>
-		<ok to="fork_1" />
+		<ok to="apl_result_detail_page_abtest3_fact_tohbase_new" />
 		<error to="failed_mail" />
 	</action>
 
+
+
+<action name="apl_result_detail_page_abtest3_fact_tohbase_new">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HBaseRunner(apl_result_detail_page_abtest3_fact)</name> 
+            <class>com.glbg.ai.recommend_gb.RecommendResult2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_zaful_recommend/recommend_zaful_detailpage/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 10 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=200 --conf spark.default.parallelism=200 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+            <arg>apl_result_detail_page_abtest3_fact</arg>
+            <arg>dw_zaful_recommend.result_detail_page_abtest_v4</arg>
+            <arg>0,1</arg>
+            <arg>${DATE}</arg>
+            <arg>YES</arg>
+            <arg>YES</arg>
+        </spark>  
+        <ok to="wait_mongodb5_detail"/>
+        <error to="failed_mail"/>
+    </action>
 	
    <fork name = "fork_1">
    		<path start="wait_mongodb5_detail" />
@@ -1029,7 +1073,7 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
-			<arg>http://172.31.31.152:5801/zaful_offline_recommender</arg>
+			<arg>http://aialgo.logsss.com/zaful_app_detail_recommender</arg>
 			<arg>offline_detail_abtestv5</arg>
 		</java>
 		<ok to="result_detail_page_abtest_v5" />
@@ -1158,7 +1202,7 @@
 			<arg>apl_result_detailpage_zaful_abtest_v5</arg>
 			<arg>23</arg>
 		</java>
-		<ok to="join_1" />
+		<ok to="end" />
 		<error to="failed_mail" />
 	</action>
 
