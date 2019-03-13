@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app name="zaful_db_job03-wf" xmlns="uri:oozie:workflow:0.2">
+	<start to="eload_goods_id" />
+	<action name="prepare">
+		<shell xmlns="uri:oozie:shell-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<exec>${PREPARE_EXEC}</exec>
+			<argument>${done_flag_dir}</argument>
+			<argument>${TODAY}</argument>
+			<file>${wf_application_path}/${PREPARE_EXEC}</file>
+		</shell>
+		<ok to="zaful_db_job02_alert_part" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_id">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_id/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_id</arg>
+			<arg>--columns</arg>
+			<arg>id,goods_id,goods_title,goods_name,keywords,goods_brief,goods_desc,seller_note,goods_search_attr,update_time,size_chart,relate_size_chart,seo_title,seo_description,url_title,is_lang_show,is_lang_atime,goods_model,week1sale_spu,week2sale_spu
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_id
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_ar" />
+		<error to="failed_mail" />
+		</action>
+	<action name="eload_goods_ar">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_ar/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_ar</arg>
+			<arg>--columns</arg>
+			<arg>id,goods_id,goods_title,goods_name,keywords,goods_brief,goods_desc,seller_note,goods_search_attr,update_time,size_chart,relate_size_chart,seo_title,seo_description,url_title,is_lang_show,is_lang_atime,goods_model,goods_cod_status,week1sale_spu,week2sale_spu
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_ar
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_es" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_es">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/zaful.db/zaful_eload_goods_es/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_es</arg>
+			<arg>--columns</arg>
+			<arg>id,goods_id,goods_title,goods_name,keywords,goods_brief,goods_desc,seller_note,goods_search_attr,update_time,size_chart,relate_size_chart,seo_title,seo_description,url_title,is_lang_show,is_lang_atime,goods_model,week1sale_spu,week2sale_spu
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_es
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_fr" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_fr">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_fr/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_fr</arg>
+			<arg>--columns</arg>
+			<arg>id,goods_id,goods_title,goods_name,keywords,goods_brief,goods_desc,seller_note,goods_search_attr,update_time,size_chart,relate_size_chart,seo_title,seo_description,url_title,is_lang_show,is_lang_atime,goods_model,week1sale_spu,week2sale_spu
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_fr
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_de" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_de">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_de/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_de</arg>
+			<arg>--columns</arg>
+			<arg>id,goods_id,goods_title,goods_name,keywords,goods_brief,goods_desc,seller_note,goods_search_attr,update_time,size_chart,relate_size_chart,seo_title,seo_description,url_title,is_lang_show,is_lang_atime,goods_model,week1sale_spu,week2sale_spu
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_de
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_pt" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_pt">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_pt/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_pt</arg>
+			<arg>--columns</arg>
+			<arg>id,goods_id,goods_title,goods_name,keywords,goods_brief,goods_desc,seller_note,goods_search_attr,update_time,size_chart,relate_size_chart,seo_title,seo_description,url_title,is_lang_show,is_lang_atime,goods_model,week1sale_spu,week2sale_spu
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_pt
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_it" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_it">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_it/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_it</arg>
+			<arg>--columns</arg>
+			<arg>id,goods_id,goods_title,goods_name,keywords,goods_brief,goods_desc,seller_note,goods_search_attr,update_time,size_chart,relate_size_chart,seo_title,seo_description,url_title,is_lang_show,is_lang_atime,goods_model,week1sale_spu,week2sale_spu
+			</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_it
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_attr_multi_lang" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_attr_multi_lang">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_attr_multi_lang/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_attr_multi_lang</arg>
+			<arg>--columns</arg>
+			<arg>attr_id,attr_value,attr_value_lang,lang</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_attr_multi_lang
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="eload_goods_attr" />
+		<error to="failed_mail" />
+	</action>
+	<action name="eload_goods_attr">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+               <delete path="/user/hive/warehouse/stg.db/zaful_eload_goods_attr/"/>
+            </prepare>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+			<arg>import</arg>
+			<arg>--connect</arg>
+			<arg>${db_uri}</arg>
+			<arg>--username</arg>
+			<arg>${db_username}</arg>
+			<arg>--password</arg>
+			<arg>${db_passwd}</arg>
+			<arg>--table</arg>
+			<arg>eload_goods_attr</arg>
+			<arg>--columns</arg>
+			<arg>goods_attr_id,goods_id,attr_id,attr_value,attr_price,attr_goods_sn,wh_update_time</arg>
+			<arg>--target-dir</arg>
+			<arg>/user/hive/warehouse/stg.db/zaful_eload_goods_attr
+			</arg>
+			<arg>--delete-target-dir</arg>
+			<arg>--hive-drop-import-delims</arg>
+			<arg>--null-string</arg>
+			<arg>\\N</arg>
+			<arg>--null-non-string</arg>
+			<arg>\\N</arg>
+			<arg>--fields-terminated-by</arg>
+			<arg>\001</arg>
+			<arg>--lines-terminated-by</arg>
+			<arg>\n</arg>
+			<arg>-m</arg>
+			<arg>1</arg>
+		</sqoop>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+	
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>bigdata@globalegrow.com
+			</to>
+			<subject>stg_zaful_wf03 failed</subject>
+			<body>stg_zaful_wf03 failed ; ${timestamp()}</body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+	<action name="succeeded_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>bigdata@globalegrow.com
+			</to>
+			<subject>stg_zaful_wf03 succeeded</subject>
+			<body>stg_zaful_wf03 succeeded ; ${timestamp()}</body>
+		</email>
+		<ok to="end" />
+		<error to="kill" />
+	</action>
+
+	<kill name="kill">
+		<message>stg_zaful_wf03-wf failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

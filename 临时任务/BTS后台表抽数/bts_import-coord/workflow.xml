@@ -1,0 +1,123 @@
+<workflow-app name="bts_import-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="bts_import1" />
+	    <action name="bts_import1">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>b_bts_plan</arg>
+            <arg>--columns</arg>
+            <arg>plan_id,plan_name,plan_desc,status,product_line_code,product_line_name,creator,plan_code,end_time,create_time,update_time,run_time,updater,is_delete,sort,plan_item</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/bts.db/b_bts_plan</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>1</arg>
+        </sqoop>
+        <ok to="bts_import2"/>
+        <error to="failed_mail"/>
+       </action>
+			<action name="bts_import2">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>b_bts_plan_version</arg>
+            <arg>--columns</arg>
+            <arg>version_id,version_name,version_desc,plan_id,bucket_ids,version_flag,version_ext_params,status,create_time,update_time,type,creator,updater,rate_of_flow,start_bucket,end_bucket</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/bts.db/b_bts_plan_version</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>1</arg>
+        </sqoop>
+        <ok to="end"/>
+        <error to="failed_mail"/>
+       </action>
+		
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com</to>
+			<subject>bts_import-wf failed</subject>
+			<body>bts_import-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>
