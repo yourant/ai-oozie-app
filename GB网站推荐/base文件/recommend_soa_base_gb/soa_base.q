@@ -452,10 +452,10 @@ LEFT JOIN
 	stg.gb_goods_goods_pipeline_info t5
 ON
 	t1.good_sn = t5.good_sn AND t1.v_wh_code = t5.v_wh_code AND t5.pipeline_code = t1.pipeline_code
-JOIN
-     stg.gb_goods_goods_pipeline_relation t6
-ON
-    t1.good_sn = t6.good_sn AND t6.pipeline_code = t1.pipeline_code
+-- JOIN
+--      stg.gb_goods_goods_pipeline_relation t6
+-- ON
+--     t1.good_sn = t6.good_sn AND t6.pipeline_code = t1.pipeline_code
 ;
 CREATE TABLE IF NOT EXISTS sku_info_data(
 	sku                string        COMMENT '商品SKU',
