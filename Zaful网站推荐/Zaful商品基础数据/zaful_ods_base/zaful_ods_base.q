@@ -112,7 +112,28 @@ SELECT
 	 'id' lang
 FROM
 	ods.ods_m_zaful_eload_goods_id
-    WHERE dt='${DATE}';
+    WHERE dt='${DATE}'
+UNION ALL
+SELECT
+	 goods_id,
+	 goods_title,
+	 is_lang_show,
+	 url_title,
+	 'th' lang
+FROM
+	ods.ods_m_zaful_eload_goods_th
+    WHERE dt='${DATE}'
+UNION ALL
+SELECT
+	 goods_id,
+	 goods_title,
+	 is_lang_show,
+	 url_title,
+	 'zh-tw' lang
+FROM
+	ods.ods_m_zaful_eload_goods_zhtw
+    WHERE dt='${DATE}'
+;
 
 
 
@@ -336,7 +357,52 @@ FROM
 	ods.ods_m_zaful_eload_goods_pipeline_zfid
 WHERE
 	dt = '${DATE}'
-AND is_show = 1;
+AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFBR' AS pipelinecode,
+	'pt' AS lang
+FROM
+	ods.ods_m_zaful_eload_goods_pipeline_zfbr
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFMX' AS pipelinecode,
+	'es' AS lang
+FROM
+	ods.ods_m_zaful_eload_goods_pipeline_zfmx
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFTH' AS pipelinecode,
+	'th' AS lang
+FROM
+	ods.ods_m_zaful_eload_goods_pipeline_zfth
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFTW' AS pipelinecode,
+	'zh-tw' AS lang
+FROM
+	ods.ods_m_zaful_eload_goods_pipeline_zftw
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
+;
 
 
 CREATE TABLE IF NOT EXISTS tmp.apl_sku_color_size_fact(

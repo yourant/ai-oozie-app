@@ -401,14 +401,14 @@
             <arg>/import-to-redis/gb_app_homepage_trending_rec_da/</arg>
             <arg>dw_gearbest_recommend</arg>
             <arg>gb_app_homepage_trending_rec_da</arg>
-            <arg>gb_app_homepage_trending_rec_bf</arg>
+            <arg>gb_app_homepage_trending_rec_da_test</arg>
             <arg>tab_id###pipeline_code###lang###platform</arg>
             <arg>30</arg>
             <arg>score</arg>
 		</java>
 		<ok to="gb_app_homepage_cat_name" />
 		<error to="failed_mail" />
-	</action>   
+	</action>  
 	 <action name="gb_app_homepage_cat_name">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
