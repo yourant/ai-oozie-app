@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="email_emp_rosegal_users-coord"
+<coordinator-app name="email_emp_rosegal_users-coord_SNB25641_1"
 	frequency="${coord:days(7)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
@@ -52,7 +52,7 @@
 			<uri-template>/bigdata/log_clean/job/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
-		<dataset name="input_data02" frequency="${coord:days(1)}"
+		<!-- <dataset name="input_data02" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
 			<uri-template>/bigdata/ods/sqoop/rosegal/ods_m_rosegal_eload_job01/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
@@ -61,7 +61,7 @@
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
 			<uri-template>/bigdata/ods/sqoop/rosegal/ods_m_rosegal_eload_job02/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
-		</dataset>
+		</dataset> -->
 	</datasets>
 
 
@@ -69,12 +69,12 @@
 		<data-in name="input01" dataset="input_data01">
 			<instance>${coord:current(0)}</instance>
 		</data-in>
-		<data-in name="input02" dataset="input_data02">
+		<!-- <data-in name="input02" dataset="input_data02">
 			<instance>${coord:current(0)}</instance>
 		</data-in>
 		<data-in name="input03" dataset="input_data03">
 			<instance>${coord:current(0)}</instance>
-		</data-in>
+		</data-in> -->
 	</input-events>
 
 	<output-events>

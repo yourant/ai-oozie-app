@@ -93,15 +93,50 @@
             <arg>email_emp_rg_onsale</arg>
             <arg>bigdevelp_user</arg>
             <arg>ePVxXNZKuNbAzNOH</arg>
-            <arg>sku</arg>
+            <arg>goods_sn</arg>
             <arg>string</arg>
             <arg>etl_date</arg>
             <arg>none</arg>
 		</java>
-		<ok to="end" />
+		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />
 	</action>
 
+		<action name="doneflag_toredis">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                   <property>
+                     <name>jobTracker</name>
+                     <value>${jobTracker}</value>
+                   </property>
+                   <property>
+                     <name>nameNode</name>
+                     <value>${nameNode}</value>
+                   </property>
+                      <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+                      <property>
+                        <name>oozie.use.system.libpath</name>
+                        <value>true</value>
+                      </property>
+               </configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>DoneFlag2Redis(rg_recommend_base_data)</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlag2Redis</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_rg_recommend/rg_recommend_base_data/lib/recommender.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+               <arg>${YEAR}${MONTH}${DAY}</arg>
+               <arg>rg_recommend_base_data</arg>
+               <arg>email_emp_rg_onsale</arg>
+        </spark> 
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
 
 	<action name="finished2mongodb">
           <java>
