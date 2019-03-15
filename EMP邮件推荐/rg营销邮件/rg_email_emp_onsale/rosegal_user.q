@@ -102,9 +102,9 @@ set hive.support.concurrency=false;
 
 
 --建表
--- CREATE TABLE IF NOT EXISTS dw_rg_recommend.rosegal_users_onsale(
--- 	sku       string        COMMENT '商品id'
--- );
+CREATE TABLE IF NOT EXISTS dw_rg_recommend.rosegal_users_onsale(
+	goods_sn       string        COMMENT '商品id'
+);
 
 
 --rg过滤商品
