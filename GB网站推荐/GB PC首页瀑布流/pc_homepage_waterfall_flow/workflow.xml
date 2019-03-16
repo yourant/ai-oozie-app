@@ -1,0 +1,78 @@
+<workflow-app name="pc_homepage_waterfall_flow-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="pc_homepage_waterfall_flow_hive" />
+	<action name="pc_homepage_waterfall_flow_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                 <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+                    <value>512</value>
+                </property>
+                <property>
+				  <name>oozie.use.system.libpath</name>
+				  <value>true</value>
+				</property>
+				<property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>pc_homepage_waterfall_flow.q</script>
+			         <param>DATE=${DATE}</param>
+			        <param>DAYWEEK=${DAYWEEK}</param>
+        </hive>
+        <ok to="result_toredis"/>
+        <error to="failed_mail"/>
+   	    </action>   	  
+	<action name="result_toredis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+				<delete path="hdfs://glbgnameservice/import-to-redis/pc_homepage_waterfall_flow/" />
+			</prepare>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetoredis.HiveToRedisPriceMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/pc_homepage_waterfall_flow/</arg>
+            <arg>/import-to-redis/pc_homepage_waterfall_flow/</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>pc_homepage_waterfall_flow</arg>
+            <arg>pc_homepage_waterfall_flow</arg>
+            <arg>tab_id###pipeline_code###lang###platform</arg>
+            <arg>30</arg>
+            <arg>score</arg>
+		</java>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>   
+
+
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com
+			</to>
+			<subject>pc_homepage_waterfall_flow-wf failed</subject>
+			<body>pc_homepage_waterfall_flow-wf failed ;${timestamp()} </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>
+
