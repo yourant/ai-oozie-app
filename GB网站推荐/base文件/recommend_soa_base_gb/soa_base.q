@@ -86,7 +86,8 @@ FROM(
 	ON
 		t1.good_sn = t2.good_sn
 	LEFT JOIN
-		stg_gb_goods.goods_price_relation t3
+	  (select good_sn,pipeline_code,v_wh_code,shop_price from ods.ods_m_gearbest_gb_goods_goods_price_relation
+	   where dt='${DATE}') t3
 	ON
 		t2.good_sn = t3.good_sn AND t2.v_wh_code = t3.v_wh_code
 	LEFT JOIN
@@ -99,8 +100,7 @@ FROM(
 		t5.category_id = t4.id
        JOIN
 	   (select good_sn,pipeline_code from ods.ods_m_gearbest_gb_goods_goods_pipeline_relation
-	   where dt='${DATE}')
-		t6
+	   where dt='${DATE}') t6
 	ON
 		t1.good_sn = t6.good_sn AND t3.pipeline_code = t6.pipeline_code
 	WHERE
