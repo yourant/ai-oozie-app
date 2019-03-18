@@ -167,7 +167,7 @@ FROM
 		AND id IS NOT NULL
 	) m
 WHERE
-	m.flag <= 150;
+	m.flag <= 50;
 
 
 --各分类数据统计，商品池的商品是按照底级分类存的，向上构造父分类商品池
@@ -268,7 +268,7 @@ FROM
 			dw_gearbest_recommend.goods_backup_tmp
 	) m
 WHERE
-	m.flag <= 150
+	m.flag <= 50
 ;
 
 --取3级分类 来补分类不够50个的情况
@@ -298,7 +298,7 @@ FROM
 					category_id,
 					lang
 				HAVING
-					cnt < 150
+					cnt < 50
 			) a
 		JOIN dw_gearbest_recommend.goods_category_level b ON a.category_id = b.id
 	) m
@@ -342,7 +342,7 @@ FROM
 					category_id,
 					lang
 				HAVING
-					cnt < 150
+					cnt < 50
 			) a
 		JOIN dw_gearbest_recommend.goods_category_level b ON a.category_id = b.id
 	) m
@@ -386,7 +386,7 @@ FROM
 					category_id,
 					lang
 				HAVING
-					cnt < 150
+					cnt < 50
 			) a
 		JOIN dw_gearbest_recommend.goods_category_level b ON a.category_id = b.id
 	) m
@@ -462,7 +462,7 @@ FROM
 			) m
 	) n
 WHERE
-	n.flag <= 150
+	n.flag <= 50
 group by 
 	n.pipeline_code,
 	n.goods_spu,
