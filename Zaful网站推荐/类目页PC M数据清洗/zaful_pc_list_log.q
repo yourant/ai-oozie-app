@@ -74,7 +74,7 @@ STORED AS TEXTFILE;
 
 
 --曝光数据
-INSERT INTO TABLE dw_zaful_recommend.zaful_pc_list_log_tmp
+INSERT OVERWRITE TABLE dw_zaful_recommend.zaful_pc_list_log_tmp
 SELECT
 	time_stamp as glb_tm,
 	page,
