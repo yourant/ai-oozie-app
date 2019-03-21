@@ -132,14 +132,30 @@ SELECT
 FROM
 	(
 		SELECT
-			price,
-			price_md5,
-			warehouse_code,
-            goods_sn
+	    x.price,
+		x.price_md5,
+		x.warehouse_code,
+		x.goods_sn
+		FROM
+		(
+			SELECT
+				price,
+				price_md5,
+				warehouse_code,
+				goods_sn,
+				ROW_NUMBER () OVER (
+				PARTITION BY
+					goods_sn
+				ORDER BY
+					price ASC
+			) AS flag
 		FROM
 			ods.ods_m_gearbest_gb_order_order_goods
 		WHERE
 			dt = '${DATE}'
+		) x
+	WHERE
+	x.flag = 1
 	) t0
 JOIN (
 	SELECT
@@ -153,6 +169,13 @@ JOIN (
 		ods.ods_m_gearbest_goods_price_factor
 	WHERE
 		dt = '${DATE}'
+	GROUP BY 
+		ship_price,
+		exchange_rate,
+		good_sn,
+		price_md5,
+		wh_code,
+        ship_fee
 ) t1 ON t0.goods_sn = t1.good_sn
 AND t0.price_md5 = t1.price_md5
 AND t0.warehouse_code = t1.wh_code

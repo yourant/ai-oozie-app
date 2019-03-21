@@ -160,4 +160,24 @@ JOIN
 	dw_gearbest_recommend.goods_info_result_uniqlang t3
 ON
 	t2.good_sn = t3.good_sn
+GROUP BY
+    t1.country_code,
+	t2.good_sn,
+    t3.pipeline_code,
+	t3.goods_web_sku,
+	t3.good_title,
+	t3.lang,
+    t3.shop_code,
+    t3.id,
+	t3.v_wh_code,
+	t3.total_num,
+	t3.avg_score,
+	t3.shop_price,
+	t3.total_favorite,
+	t3.stock_qty,
+	t3.img_url,
+	t3.grid_url,
+	t3.thumb_url,
+	t3.thumb_extend_url,
+	t3.url_title
 ;
