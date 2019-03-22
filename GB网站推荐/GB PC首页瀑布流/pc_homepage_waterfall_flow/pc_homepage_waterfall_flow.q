@@ -440,48 +440,48 @@ LINES TERMINATED BY '\n'
 STORED AS TEXTFILE;
 
 -- --未入选商品集，保留1000个作为长尾后补
--- INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_rec_bak SELECT
--- 	a.good_sn,
--- 	a.pipeline_code,
--- 	a.trending,
--- 	a.conversion,
--- 	a.score
--- FROM
--- 	(
--- 		SELECT
--- 			t.good_sn,
--- 			t.pipeline_code,
--- 			t.trending,
--- 			t.conversion,
--- 			ROW_NUMBER () OVER (
--- 				PARTITION BY t.pipeline_code
--- 				ORDER BY
--- 					t.score ASC
--- 			) + 1000 AS score
--- 		FROM
--- 			(
--- 				SELECT
--- 					m.good_sn,
--- 					m.pipeline_code,
--- 					m.trending,
--- 					m.conversion,
--- 					m.score
--- 				FROM
--- 					dw_gearbest_recommend.goods_rec_rank m
--- 				LEFT JOIN dw_gearbest_recommend.goods_rec_recall n ON n.good_sn = m.good_sn
--- 				AND n.pipeline_code = m.pipeline_code
--- 				WHERE
--- 					m.good_sn NOT IN (
--- 						SELECT
--- 							good_sn
--- 						FROM
--- 							dw_gearbest_recommend.sku_not_sale_pc_new
--- 					)
--- 				AND n.good_sn IS NULL
--- 			) t
--- 	) a
--- WHERE
--- 	a.score <= 2000;
+INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_rec_bak SELECT
+	a.good_sn,
+	a.pipeline_code,
+	a.trending,
+	a.conversion,
+	a.score
+FROM
+	(
+		SELECT
+			t.good_sn,
+			t.pipeline_code,
+			t.trending,
+			t.conversion,
+			ROW_NUMBER () OVER (
+				PARTITION BY t.pipeline_code
+				ORDER BY
+					t.score ASC
+			) + 1000 AS score
+		FROM
+			(
+				SELECT
+					m.good_sn,
+					m.pipeline_code,
+					m.trending,
+					m.conversion,
+					m.score
+				FROM
+					dw_gearbest_recommend.goods_rec_rank m
+				LEFT JOIN dw_gearbest_recommend.goods_rec_recall n ON n.good_sn = m.good_sn
+				AND n.pipeline_code = m.pipeline_code
+				WHERE
+					m.good_sn NOT IN (
+						SELECT
+							good_sn
+						FROM
+							dw_gearbest_recommend.sku_not_sale_pc_new
+					)
+				AND n.good_sn IS NULL
+			) t
+	) a
+WHERE
+	a.score <= 2000;
 
 
 
@@ -581,6 +581,7 @@ SELECT
 ;
 
 --最终结果汇总，过滤同款spu，按国家站打散，召回商品排在前面，后补商品排序分+1000排在后面.
+--随机打散影响了之前的线性排序，APP 瀑布流和PC 瀑布流都有这样的问题，可视业务需求取消打散逻辑
 --由于读取redis采用ZRANGEBYSCORE pc_homepage_waterfall_flow_0_GBPL_pl_1,分数重排保持连续
 INSERT OVERWRITE TABLE dw_gearbest_recommend.pc_homepage_waterfall_flow SELECT
 	r.tab_id,
@@ -690,6 +691,42 @@ FROM
 						n1.thumb_extend_url,
 						n1.url_title,
 						1000 + ROW_NUMBER () OVER (
+							PARTITION BY n1.pipeline_code,
+							n1.lang
+						ORDER BY
+							rand()
+						) AS score,
+						ROW_NUMBER () OVER (
+							PARTITION BY n1.pipeline_code,
+							n1.lang,
+							n1.goods_spu
+						ORDER BY
+							m1.score ASC
+						) AS flag
+					FROM
+						dw_gearbest_recommend.goods_rec_bak m1
+					JOIN dw_gearbest_recommend.goods_info_result_uniqlang n1 ON m1.good_sn = n1.good_sn
+					AND m1.pipeline_code = n1.pipeline_code
+				UNION ALL
+					SELECT
+						m1.good_sn,
+						m1.pipeline_code,
+						n1.goods_web_sku,
+						n1.good_title,
+						n1.id,
+						n1.lang,
+						n1.v_wh_code,
+						n1.total_num,
+						n1.avg_score,
+						n1.shop_price,
+						n1.total_favorite,
+						n1.stock_qty,
+						n1.img_url,
+						n1.grid_url,
+						n1.thumb_url,
+						n1.thumb_extend_url,
+						n1.url_title,
+						2000 + ROW_NUMBER () OVER (
 							PARTITION BY n1.pipeline_code,
 							n1.lang
 						ORDER BY
