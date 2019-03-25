@@ -112,7 +112,7 @@ FROM
 				SELECT
 					a.country_code,
 					a.goods_spu,
-					SUM(a.pay_amount) as sell_amount
+					SUM(a.qty) as sell_amount
 				FROM
 					dw_gearbest_recommend.goods_country_count a
 				GROUP BY
