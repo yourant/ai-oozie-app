@@ -77,7 +77,7 @@ FROM(
 		t4.level_2,
 		t4.level_3,
 		t4.level_4,
-		t3.pipeline_code,
+		t6.pipeline_code,
 		t1.url_title
 	FROM
 		stg_gb_goods.goods_info t1
@@ -432,7 +432,7 @@ SELECT
 	t4.avg_score,
 	t4.total_num,
 	t4.total_favorite,
-	t5.pipeline_code,
+	t1.pipeline_code,
 	t1.url_title
 FROM
 	goods_info_mid1 t1
@@ -448,10 +448,10 @@ LEFT JOIN
 	goods_info_mid4 t4
 ON
 	t1.good_sn = t4.good_sn
-LEFT JOIN
-	stg.gb_goods_goods_pipeline_info t5
-ON
-	t1.good_sn = t5.good_sn AND t1.v_wh_code = t5.v_wh_code AND t5.pipeline_code = t1.pipeline_code
+-- LEFT JOIN
+-- 	stg.gb_goods_goods_pipeline_info t5
+-- ON
+-- 	t1.good_sn = t5.good_sn AND t1.v_wh_code = t5.v_wh_code AND t5.pipeline_code = t1.pipeline_code
 -- JOIN
 --      stg.gb_goods_goods_pipeline_relation t6
 -- ON
