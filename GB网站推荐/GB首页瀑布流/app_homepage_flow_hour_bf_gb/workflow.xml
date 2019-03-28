@@ -144,7 +144,7 @@
 				  <value>${DAY}</value>
                </property>
 			</configuration>
-			<main-class>com.globalegrow.hadoop.hivetoredis.HiveToRedisSortMR</main-class>
+			<main-class>com.globalegrow.hadoop.hivetoredis.HiveToRedisSortMR_New</main-class>
             <arg>/user/hive/warehouse/dw_gearbest_recommend.db/webapp_category_library_result_bf/</arg>
             <arg>/import-to-redis/webapp_category_library_result_bf/</arg>
             <arg>dw_gearbest_recommend</arg>

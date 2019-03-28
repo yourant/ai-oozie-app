@@ -15,7 +15,7 @@ SET hive.merge.mapfiles=true;
 SET hive.merge.mapredfiles= true;
 SET hive.merge.size.per.task=256000000;
 SET hive.exec.parallel = true; 
-hive.auto.convert.join=false;
+SET hive.auto.convert.join=false;
 
 USE dw_gearbest_recommend;
 
