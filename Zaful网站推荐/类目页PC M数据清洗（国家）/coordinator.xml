@@ -3,7 +3,7 @@
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
-	    <timeout>60</timeout>
+	    <timeout>-1</timeout>
 		<execution>FIFO</execution>
 	</controls>
 	<datasets>
@@ -45,27 +45,27 @@
 	</datasets>
 	<input-events>
 		<data-in name="input01" dataset="input_data01">
-			<instance>${coord:current(0)}</instance>
+			<instance>${coord:current(1)}</instance>
 		</data-in>
 		<data-in name="input02" dataset="input_data02">
-			<instance>${coord:current(0)}</instance>
+			<instance>${coord:current(1)}</instance>
 		</data-in>
 	</input-events>
 	<output-events>
 		<data-out name="year" dataset="yearout">
-			<instance>${coord:current(-1)}</instance>
+			<instance>${coord:current(0)}</instance>
 		</data-out>
 		<data-out name="month" dataset="monthout">
-			<instance>${coord:current(-1)}</instance>
+			<instance>${coord:current(0)}</instance>
 		</data-out>
 		<data-out name="day" dataset="dayout">
-			<instance>${coord:current(-1)}</instance>
+			<instance>${coord:current(0)}</instance>
 		</data-out>
 		<data-out name="date" dataset="dout">
-			<instance>${coord:current(-1)}</instance>
+			<instance>${coord:current(0)}</instance>
 		</data-out>
 		<data-out name="wdate" dataset="wdout">
-  		    <instance>${coord:current(-14)}</instance>
+  		    <instance>${coord:current(-13)}</instance>
   	    </data-out>
 	</output-events>
 
