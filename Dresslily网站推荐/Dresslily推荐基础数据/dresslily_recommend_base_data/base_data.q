@@ -82,7 +82,8 @@ JOIN (
 --过滤上下架无库存
 INSERT overwrite TABLE dw_dresslily_recommend.email_emp_D_onsale
 SELECT
-	goods_sn
+	goods_sn,
+	cat_id
 FROM
 	ods.ods_m_dresslily_eload_goods
 WHERE

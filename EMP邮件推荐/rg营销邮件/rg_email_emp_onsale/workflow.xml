@@ -93,8 +93,8 @@
             <arg>email_emp_rg_onsale</arg>
             <arg>bigdevelp_user</arg>
             <arg>ePVxXNZKuNbAzNOH</arg>
-            <arg>goods_sn</arg>
-            <arg>string</arg>
+            <arg>goods_sn,cat_id</arg>
+            <arg>string,string</arg>
             <arg>etl_date</arg>
             <arg>none</arg>
 		</java>
