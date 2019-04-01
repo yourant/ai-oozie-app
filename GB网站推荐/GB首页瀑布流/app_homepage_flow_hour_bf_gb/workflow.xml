@@ -116,9 +116,48 @@
 			<param>DATE=${DATE}</param>
 			
         </hive>
-        <ok to="webapp_category_library_result_bf_toredis"/>
+        <ok to="webapp_category_library_result_bf_toredis_spark"/>
         <error to="failed_mail"/>
    	    </action>
+		   
+   	    <action name="webapp_category_library_result_bf_toredis_spark">
+		 <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>Hive2RedisSort</name> 
+            <class>com.glbg.ai.recommend_gb.Hive2RedisSort</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/recommend_gb_bf/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/webapp_category_library_result_bf</arg>
+			<arg>tab_id,good_sn,pipeline_code,webgoodsn,goodstitle,catid,lang,warecode,reviewcount,avgrate,shopprice,favoritecount,goodsnum,originalurl,imgurl,gridurl,thumburl,thumbextendurl,url_title,platform,score</arg>
+			<arg>webapp_category_library_result_bf</arg>
+			<arg>0,2,6,19</arg>
+			<arg>20</arg>
+        </spark> 
+		<ok to="gb_app_homepage_trending_rec_bf_toredis" />
+		<error to="failed_mail" />
+	</action>
+
    	    <action name="webapp_category_library_result_bf_toredis">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
