@@ -85,7 +85,8 @@ JOIN (
 --过滤上下架无库存
 INSERT overwrite TABLE dw_zaful_recommend.email_emp_zaful_onsale
 SELECT
-	goods_sn
+	goods_sn,
+	cat_id
 FROM
 	ods.ods_m_zaful_eload_goods
 WHERE

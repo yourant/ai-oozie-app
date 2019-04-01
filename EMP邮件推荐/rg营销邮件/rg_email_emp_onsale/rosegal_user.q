@@ -110,11 +110,12 @@ CREATE TABLE IF NOT EXISTS dw_rg_recommend.rosegal_users_onsale(
 --rg过滤商品
 INSERT OVERWRITE TABLE dw_rg_recommend.rosegal_users_onsale  
 select 
-   goods_sn
+   goods_sn,
+   cat_id
  from  ods.ods_m_rosegal_eload_goods 
  where dt='${DATE}'
 and is_on_sale =1 and is_delete=0 and goods_number>0
-group by goods_sn
+group by goods_sn,cat_id
 ;
 
 
