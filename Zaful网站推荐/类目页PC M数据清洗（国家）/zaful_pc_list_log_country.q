@@ -382,7 +382,7 @@ FROM
 			) AS flag
 		FROM
 			dw_zaful_recommend.zaful_order_info_new_tmp m
-		JOIN dw_zaful_recommend.zaful_od_u_map n ON m.user_id = n.glb_u
+		JOIN dw_zaful_recommend.ods_zaful_od_u_map n ON m.user_id = n.glb_u
 	) x
 WHERE
 x.flag = 1
