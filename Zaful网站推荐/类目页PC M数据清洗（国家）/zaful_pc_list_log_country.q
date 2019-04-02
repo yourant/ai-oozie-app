@@ -339,13 +339,14 @@ FROM
 ) x
 JOIN   (
   SELECT 
-    goods_sn,
     order_id,
+    goods_sn,
     goods_price
   from
     ods.ods_m_zaful_eload_order_goods 
   WHERE
     dt = '${ADD_TIME}' 
+  group by order_id,goods_sn,goods_price
 ) p
 ON x.order_id = p.order_id
 ;
@@ -360,7 +361,7 @@ SELECT
 	x.platform,
   x.price,
 	x.order_status,
-	x.glb_od
+	x.cookie_id as glb_od
 FROM
 	(
 		SELECT
@@ -370,7 +371,7 @@ FROM
 			m.platform,
 			m.order_status,
       m.price,
-			n.glb_od,
+			n.cookie_id,
 			ROW_NUMBER () OVER (
 				PARTITION BY m.user_id,
 				m.sku,
@@ -382,7 +383,7 @@ FROM
 			) AS flag
 		FROM
 			dw_zaful_recommend.zaful_order_info_new_tmp m
-		JOIN dw_zaful_recommend.ods_zaful_od_u_map n ON m.user_id = n.glb_u
+		JOIN dw_zaful_recommend.ods_zaful_od_u_map n ON m.user_id = n.user_id
 	) x
 WHERE
 x.flag = 1
