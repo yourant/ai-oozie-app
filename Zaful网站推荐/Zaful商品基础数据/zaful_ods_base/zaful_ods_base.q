@@ -133,6 +133,26 @@ SELECT
 FROM
 	ods.ods_m_zaful_eload_goods_zhtw
     WHERE dt='${DATE}'
+UNION ALL
+SELECT
+	 goods_id,
+	 goods_title,
+	 is_lang_show,
+	 url_title,
+	 'tr' lang
+FROM
+	ods.ods_m_zaful_eload_goods_tr 
+    WHERE dt='${DATE}'
+UNION ALL
+SELECT
+	 goods_id,
+	 goods_title,
+	 is_lang_show,
+	 url_title,
+	 'ru' lang
+FROM
+	ods.ods_m_zaful_eload_goods_ru 
+    WHERE dt='${DATE}'
 ;
 
 
@@ -399,6 +419,39 @@ SELECT
 	'zh-tw' AS lang
 FROM
 	ods.ods_m_zaful_eload_goods_pipeline_zftw
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFRU' AS pipelinecode,
+	'ru' AS lang
+FROM
+	ods.ods_m_zaful_eload_goods_pipeline_zfru
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFTR' AS pipelinecode,
+	'tr' AS lang
+FROM
+	ods.ods_m_zaful_eload_goods_pipeline_zftr
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFZA' AS pipelinecode,
+	'en' AS lang
+FROM
+	ods.ods_m_zaful_eload_goods_pipeline_zfza
 WHERE
 	dt = '${DATE}'
 AND is_show = 1
