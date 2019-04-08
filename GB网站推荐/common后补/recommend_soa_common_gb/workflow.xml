@@ -135,7 +135,6 @@
 		<ok to="apl_top10_category_fact" />
 		<error to="failed_mail" />
 	</action>
-
 	<action name="apl_top10_category_fact">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
@@ -210,7 +209,7 @@
 			<arg>0,20,25</arg>
 			<arg>apl_goods_info_result_rec_gb_fact</arg>
 		</java>
-		<ok to="succeeded" />
+		<ok to="apl_gb_goods_info_tohbase" />
 		<error to="failed_mail" />
 	</action>
 <action name="apl_gb_goods_info_tohbase">
@@ -250,7 +249,7 @@
 			<main-class>com.globalegrow.hadoop.hiveimporthbasejsonmr.HiveImportHbaseHbaseJsonRunner
 			</main-class>
 			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_info_result_uniqlang</arg>
-			<arg>good_sn,goodsspu,webgoodsn,shopcode,goodsstatus,brandcode,firstuptime,warecode,shopprice,id,levelcnt,level1,level2,level3,level4,goodtitle,imgurl,gridurl,thumburl,thumbextendurl,lang,stockqty,avgrate,reviewcount,favoritecount,pipelinecode,url_title</arg>
+			<arg>good_sn,goodsspu,webgoodsn,shopcode,goodsstatus,brandcode,firstuptime,warecode,shopprice,id,levelcnt,level1,level2,level3,level4,goodstitle,imgurl,gridurl,thumburl,thumbextendurl,lang,stockqty,avgrate,reviewcount,favoritecount,pipeline_code,url_title</arg>
 			<arg>0,20,25</arg>
 			<arg>apl_gb_goods_info</arg>
 		</java>
