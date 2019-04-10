@@ -193,7 +193,7 @@
    <fork name = "fork_1">
    		<path start="wait_mongodb1" />
    		<path start="wait_mongodb2" />
-			<path start="wait_mongodb3" />
+			<!-- <path start="wait_mongodb3" /> -->
    </fork>
 
 
