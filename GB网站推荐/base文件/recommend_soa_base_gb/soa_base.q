@@ -69,7 +69,8 @@ FROM(
 		t2.goods_status,
 		t1.brand_code,
 		t2.first_up_time,
-		t2.v_wh_code,
+		--t2.v_wh_code,
+		t_ods_pw.v_wh_code,
 		t3.shop_price,
 		t4.id, 
 		t4.level_cnt,
@@ -91,6 +92,11 @@ FROM(
 	ON
 		t2.good_sn = t3.good_sn AND t2.v_wh_code = t3.v_wh_code
 	LEFT JOIN
+		(select pipeline_code,v_wh_code from ods.ods_m_gearbest_obs_gb_pipeline_warehouse
+		where dt='${DATE}') t_ods_pw 
+	ON	
+		t_ods_pw.pipeline_code = t3.pipeline_code AND t_ods_pw.v_wh_code = t2.v_wh_code
+	LEFT JOIN
 		stg.gb_goods_goods_category_relation t5
 	ON
 		t1.good_sn = t5.good_sn
@@ -107,7 +113,7 @@ FROM(
 		t5.is_default = 1 AND t2.goods_status = 2
 	) tmp
 WHERE
-	pipeline_code != ''
+	pipeline_code != '' and v_wh_code != ''
 GROUP BY
 	good_sn,
 	goods_spu,

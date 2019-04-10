@@ -1,0 +1,57 @@
+<workflow-app name="recommend_zaful_m_homepage_operator_intervention-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="done_flag_redis_to_redis" />
+    <action name="done_flag_redis_to_redis">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                    <property>
+                    <name>jobTracker</name>
+                    <value>${jobTracker}</value>
+                    </property>
+                    <property>
+                    <name>nameNode</name>
+                    <value>${nameNode}</value>
+                    </property>
+                    <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                    </property>
+                    <property>
+                    <name>oozie.use.system.libpath</name>
+                    <value>true</value>
+                    </property>
+            </configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>DoneFlagRedis2Redis</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlagRedis2Redis</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_zaful_recommend/zf_m_homepage_operator_intervention/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+            <arg>algorithm_task_status</arg>
+            <arg>zaful_operation_index</arg>
+            <arg>recall_pool_coldboot_global_global_index</arg>
+            <arg>recall_pool_coldboot_global_global_index</arg>
+            <arg>algorithm_task_status_old</arg>
+        </spark> 
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
+    <action name="failed_mail">
+        <email xmlns="uri:oozie:email-action:0.2">
+            <to>yuhui@globalegrow.com</to>
+            <subject>done_flag_redis_to_redis failed</subject>
+            <body>done_flag_redis_to_redis!
+                    Stat DATE:${timestamp()},
+                    Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+        </email>
+        <ok to="kill" />
+        <error to="kill" />
+    </action>
+    <kill name="kill">
+        <message>Job failed, error
+            message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end" />
+</workflow-app>
