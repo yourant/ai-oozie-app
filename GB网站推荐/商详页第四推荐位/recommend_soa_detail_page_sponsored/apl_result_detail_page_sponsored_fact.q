@@ -22,12 +22,30 @@ FROM
 	dw_gearbest_recommend.goods_info_result_uniqlang n
 WHERE
 	n.good_sn IN (
-		SELECT DISTINCT
+		--distinct sku--20190409-zhangyuchao
+		select a.good_sn
+		from 
+		(SELECT DISTINCT
 			good_sn
 		FROM
-			ods.ods_m_gearbest_base_goods_new_goods_label
-		WHERE
-			label_code = '00000238'
+			ods.ods_m_gearbest_base_goods_new_goods_label 
+		where	label_code = '00000238'
+		) a
+		left join
+			(select DISTINCT goods_sn2 
+			from dw_gearbest_recommend.gb_result_detail_page_gtq 
+			where concat(year, month, day)='20190410') b
+		on 
+		   a.good_sn = b.goods_sn2 
+		left join 
+			(select DISTINCT goods_sn2 
+			from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+			where concat(year, month, day)='20190410') c
+		on a.good_sn = c.goods_sn2 
+		
+		where b.goods_sn2 is null
+		and c.goods_sn2 is null
+		
 	);
 
 
@@ -42,12 +60,28 @@ WHERE
 			x.good_sn
 		FROM
 			(
-				SELECT
-					a.good_sn
+				--distinct sku--20190409-zhangyuchao
+				select a.good_sn
+				from 
+				(SELECT DISTINCT
+					good_sn
 				FROM
-					ods.ods_m_gearbest_base_goods_goods a
-				WHERE
-					a.recommended_level = 14
+					ods.ods_m_gearbest_base_goods_goods 
+				where	recommended_level = 14
+				) a
+				left join
+					(select DISTINCT goods_sn2 
+					from dw_gearbest_recommend.gb_result_detail_page_gtq 
+					where concat(year, month, day)='20190410') b
+				on 
+					a.good_sn = b.goods_sn2 
+				left join 
+					(select DISTINCT goods_sn2 
+					from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+					where concat(year, month, day)='20190410') c
+				on a.good_sn = c.goods_sn2 
+				where b.goods_sn2 is null
+				and c.goods_sn2 is null	
 			) x
 		JOIN stg.gb_order_order_goods m ON x.good_sn = m.goods_sn
 	);

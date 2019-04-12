@@ -93,7 +93,7 @@ WHERE
 ;
 
 
- --后补基础数据准备，先随机取商品池每个pipeline_code、lang、id下的50个商品
+ --后补基础数据准备，先随机取商品池每个pipeline_code、lang、id下的50个商品--200
  INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup  SELECT
 	m.good_sn,
 	m.goods_spu,
@@ -165,9 +165,39 @@ FROM
 			pipeline_code IS NOT NULL
 		AND lang IS NOT NULL
 		AND id IS NOT NULL
+		--去除推荐位一二三四的sku--20190409--zhangyuchao
+		AND good_sn IN (
+				select a.good_sn
+				from
+				(
+					select good_sn from dw_gearbest_recommend.goods_info_result_uniqlang_filtered 
+					where pipeline_code IS NOT NULL 
+					AND lang IS NOT NULL
+					AND id IS NOT NULL
+				) a
+				left join
+					(select DISTINCT goods_sn2 
+					from dw_gearbest_recommend.gb_result_detail_page_gtq 
+					where concat(year, month, day)='20190410') b
+				on 
+				   a.good_sn = b.goods_sn2 
+				left join 
+					(select DISTINCT goods_sn2 
+					from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+					where concat(year, month, day)='20190410') c
+				on 
+					a.good_sn = c.goods_sn2 
+				left join
+					( select distinct good_sn
+								from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
+				on a.good_sn = d.good_sn
+				where b.goods_sn2 is null
+				and c.goods_sn2 is null
+				and d.good_sn is null
+		)
 	) m
 WHERE
-	m.flag <= 50;
+	m.flag <= 200;
 
 
 --各分类数据统计，商品池的商品是按照底级分类存的，向上构造父分类商品池
@@ -244,7 +274,7 @@ GROUP BY
 	m.lang,
 	m.category_id;
 
---缩小数据量，每个分类取50个数据
+--缩小数据量，每个分类取50个数据--200
 INSERT overwrite TABLE dw_gearbest_recommend.goods_backup_tmp1  SELECT
 	m.pipeline_code,
 	m.goods_spu,
@@ -268,10 +298,10 @@ FROM
 			dw_gearbest_recommend.goods_backup_tmp
 	) m
 WHERE
-	m.flag <= 50
+	m.flag <= 200
 ;
 
---取3级分类 来补分类不够50个的情况
+--取3级分类 来补分类不够50个的情况--200
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_backup_autocomplete  SELECT
 	m.pipeline_code,
 	n.goods_spu,
@@ -298,7 +328,7 @@ FROM
 					category_id,
 					lang
 				HAVING
-					cnt < 50
+					cnt < 200
 			) a
 		JOIN dw_gearbest_recommend.goods_category_level b ON a.category_id = b.id
 	) m
@@ -315,7 +345,7 @@ UNION ALL
 		dw_gearbest_recommend.goods_backup_tmp1 x
 ;
 
---取2级分类 来补分类不够50个的情况
+--取2级分类 来补分类不够50个的情况--200
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_backup_autocomplete  SELECT
 	m.pipeline_code,
 	n.goods_spu,
@@ -342,7 +372,7 @@ FROM
 					category_id,
 					lang
 				HAVING
-					cnt < 50
+					cnt < 200
 			) a
 		JOIN dw_gearbest_recommend.goods_category_level b ON a.category_id = b.id
 	) m
@@ -359,7 +389,7 @@ UNION ALL
 		dw_gearbest_recommend.goods_backup_autocomplete x
 ;
 
---取1级分类 来补分类不够50个的情况
+--取1级分类 来补分类不够50个的情况--200
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_backup_autocomplete  SELECT
 	m.pipeline_code,
 	n.goods_spu,
@@ -386,7 +416,7 @@ FROM
 					category_id,
 					lang
 				HAVING
-					cnt < 50
+					cnt < 200
 			) a
 		JOIN dw_gearbest_recommend.goods_category_level b ON a.category_id = b.id
 	) m
@@ -414,13 +444,40 @@ FROM
 	dw_gearbest_recommend.goods_spu_hotsell_15days m
 JOIN dw_gearbest_recommend.goods_info_result_uniq n ON m.pipeline_code = n.pipeline_code
 AND m.goods_spu = n.goods_spu
+--去除推荐位一二三四的sku--20190409--zhangyuchao
+WHERE n.good_sn IN (
+			select a.good_sn
+			from
+			(
+				select good_sn from dw_gearbest_recommend.goods_info_result_uniq 
+			) a
+			left join
+				(select DISTINCT goods_sn2 
+				from dw_gearbest_recommend.gb_result_detail_page_gtq 
+				where concat(year, month, day)='20190410') b
+			on 
+				a.good_sn = b.goods_sn2 
+			left join 
+				(select DISTINCT goods_sn2 
+				from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+				where concat(year, month, day)='20190410') c
+			on 
+				a.good_sn = c.goods_sn2 
+			left join
+				( select distinct good_sn
+							from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
+			on a.good_sn = d.good_sn
+			where b.goods_sn2 is null
+			and c.goods_sn2 is null
+			and d.good_sn is null
+		)	
 GROUP BY
 	m.pipeline_code,
 	m.goods_spu,
 	n.lang,
 	m.category_id;
 
---将15天热销商品和商品池后补数据汇总，缩小数据量，每个分类下取50个，去重
+--将15天热销商品和商品池后补数据汇总，缩小数据量，每个分类下取50个，去重--200
 INSERT overwrite TABLE dw_gearbest_recommend.goods_backup_merge SELECT
 	n.pipeline_code,
 	n.goods_spu,
@@ -462,7 +519,7 @@ FROM
 			) m
 	) n
 WHERE
-	n.flag <= 50
+	n.flag <= 200
 group by 
 	n.pipeline_code,
 	n.goods_spu,
@@ -536,6 +593,283 @@ ON t1.good_sn = t3.good_sn
 AND t1.pipeline_code = t3.pipeline_code
 AND t1.lang = t3.lang
 ;
+--20190409  zhangyuchao
+--下面将结果表分为四个表，后补兜底推荐表，分别写入Redis，每个表进行插入至少35条
+--保证pipeline_code,lang,categoryid维度下面，每一个组合都有至少35条
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_backup_result_addflag_tmp(
+  `good_sn` string, 
+  `webgoodsn` string, 
+  `pipeline_code` string, 
+  `goodstitle` string, 
+  `lang` string, 
+  `categoryid` int, 
+  `warecode` int, 
+  `reviewcount` bigint, 
+  `avgrate` double, 
+  `shopprice` double, 
+  `favoritecount` int, 
+  `goodsnum` int, 
+  `imgurl` string, 
+  `gridurl` string, 
+  `thumburl` string, 
+  `thumbextendurl` string, 
+  `url_title` string,
+  `flag` int
+  )
+COMMENT '推荐位后补兜底数据增加排序序列'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_backup_result_one(
+  `good_sn` string, 
+  `webgoodsn` string, 
+  `pipeline_code` string, 
+  `goodstitle` string, 
+  `lang` string, 
+  `categoryid` int, 
+  `warecode` int, 
+  `reviewcount` bigint, 
+  `avgrate` double, 
+  `shopprice` double, 
+  `favoritecount` int, 
+  `goodsnum` int, 
+  `imgurl` string, 
+  `gridurl` string, 
+  `thumburl` string, 
+  `thumbextendurl` string, 
+  `url_title` string
+  )
+COMMENT '第一推荐位后补兜底数据'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_backup_result_two(
+  `good_sn` string, 
+  `webgoodsn` string, 
+  `pipeline_code` string, 
+  `goodstitle` string, 
+  `lang` string, 
+  `categoryid` int, 
+  `warecode` int, 
+  `reviewcount` bigint, 
+  `avgrate` double, 
+  `shopprice` double, 
+  `favoritecount` int, 
+  `goodsnum` int, 
+  `imgurl` string, 
+  `gridurl` string, 
+  `thumburl` string, 
+  `thumbextendurl` string, 
+  `url_title` string
+  )
+COMMENT '第二推荐位后补兜底数据'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_backup_result_three(
+  `good_sn` string, 
+  `webgoodsn` string, 
+  `pipeline_code` string, 
+  `goodstitle` string, 
+  `lang` string, 
+  `categoryid` int, 
+  `warecode` int, 
+  `reviewcount` bigint, 
+  `avgrate` double, 
+  `shopprice` double, 
+  `favoritecount` int, 
+  `goodsnum` int, 
+  `imgurl` string, 
+  `gridurl` string, 
+  `thumburl` string, 
+  `thumbextendurl` string, 
+  `url_title` string
+  )
+COMMENT '第三推荐位后补兜底数据'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_backup_result_four(
+  `good_sn` string, 
+  `webgoodsn` string, 
+  `pipeline_code` string, 
+  `goodstitle` string, 
+  `lang` string, 
+  `categoryid` int, 
+  `warecode` int, 
+  `reviewcount` bigint, 
+  `avgrate` double, 
+  `shopprice` double, 
+  `favoritecount` int, 
+  `goodsnum` int, 
+  `imgurl` string, 
+  `gridurl` string, 
+  `thumburl` string, 
+  `thumbextendurl` string, 
+  `url_title` string
+  )
+COMMENT '第四推荐位后补兜底数据'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
+--向goods_backup_result_addflag_tmp 中导入goods_backup_result数据进行排序存储--增加一个flag
+INSERT overwrite TABLE dw_gearbest_recommend.goods_backup_result_addflag_tmp  SELECT
+		  t.good_sn, 
+		  t.webgoodsn, 
+		  t.pipeline_code, 
+		  t.goodstitle, 
+		  t.lang, 
+		  t.categoryid, 
+		  t.warecode, 
+		  t.reviewcount, 
+		  t.avgrate, 
+		  t.shopprice, 
+		  t.favoritecount, 
+		  t.goodsnum, 
+		  t.imgurl, 
+		  t.gridurl, 
+		  t.thumburl, 
+		  t.thumbextendurl, 
+		  t.url_title,
+		  t.flag
+FROM
+(
+SELECT
+		  good_sn, 
+		  webgoodsn, 
+		  pipeline_code, 
+		  goodstitle, 
+		  lang, 
+		  categoryid, 
+		  warecode, 
+		  reviewcount, 
+		  avgrate, 
+		  shopprice, 
+		  favoritecount, 
+		  goodsnum, 
+		  imgurl, 
+		  gridurl, 
+		  thumburl, 
+		  thumbextendurl, 
+		  url_title,
+		  ROW_NUMBER () OVER (
+				PARTITION BY pipeline_code, 
+				lang,
+				categoryid
+			ORDER BY
+				rand()
+			) AS flag		
+FROM 
+		dw_gearbest_recommend.goods_backup_result 
+WHERE
+			pipeline_code IS NOT NULL
+		AND lang IS NOT NULL
+		AND categoryid IS NOT NULL
+) t ;
+
+--推荐位1,准备写入Redis的数据结果
+INSERT overwrite TABLE dw_gearbest_recommend.goods_backup_result_one SELECT
+  t.good_sn, 
+  t.webgoodsn, 
+  t.pipeline_code, 
+  t.goodstitle, 
+  t.lang, 
+  t.categoryid, 
+  t.warecode, 
+  t.reviewcount, 
+  t.avgrate, 
+  t.shopprice, 
+  t.favoritecount, 
+  t.goodsnum, 
+  t.imgurl, 
+  t.gridurl, 
+  t.thumburl, 
+  t.thumbextendurl, 
+  t.url_title
+FROM
+	dw_gearbest_recommend.goods_backup_result_addflag_tmp t 
+WHERE 
+	t.flag <=35 ;
+
+--推荐位2,准备写入Redis的数据结果
+INSERT overwrite TABLE dw_gearbest_recommend.goods_backup_result_two SELECT
+  t.good_sn, 
+  t.webgoodsn, 
+  t.pipeline_code, 
+  t.goodstitle, 
+  t.lang, 
+  t.categoryid, 
+  t.warecode, 
+  t.reviewcount, 
+  t.avgrate, 
+  t.shopprice, 
+  t.favoritecount, 
+  t.goodsnum, 
+  t.imgurl, 
+  t.gridurl, 
+  t.thumburl, 
+  t.thumbextendurl, 
+  t.url_title
+FROM
+	dw_gearbest_recommend.goods_backup_result_addflag_tmp t 
+WHERE 
+	t.flag > 35 and t.flag <=70 ;
+
+
+--推荐位3,准备写入Redis的数据结果
+INSERT overwrite TABLE dw_gearbest_recommend.goods_backup_result_three SELECT
+  t.good_sn, 
+  t.webgoodsn, 
+  t.pipeline_code, 
+  t.goodstitle, 
+  t.lang, 
+  t.categoryid, 
+  t.warecode, 
+  t.reviewcount, 
+  t.avgrate, 
+  t.shopprice, 
+  t.favoritecount, 
+  t.goodsnum, 
+  t.imgurl, 
+  t.gridurl, 
+  t.thumburl, 
+  t.thumbextendurl, 
+  t.url_title
+FROM
+	dw_gearbest_recommend.goods_backup_result_addflag_tmp t 
+WHERE 
+	t.flag > 70 and t.flag <=105 ;
+
+--推荐位4,准备写入Redis的数据结果
+INSERT overwrite TABLE dw_gearbest_recommend.goods_backup_result_four SELECT
+  t.good_sn, 
+  t.webgoodsn, 
+  t.pipeline_code, 
+  t.goodstitle, 
+  t.lang, 
+  t.categoryid, 
+  t.warecode, 
+  t.reviewcount, 
+  t.avgrate, 
+  t.shopprice, 
+  t.favoritecount, 
+  t.goodsnum, 
+  t.imgurl, 
+  t.gridurl, 
+  t.thumburl, 
+  t.thumbextendurl, 
+  t.url_title
+FROM
+	dw_gearbest_recommend.goods_backup_result_addflag_tmp t 
+WHERE 
+	t.flag > 105 ;
+
+
 
 
 
