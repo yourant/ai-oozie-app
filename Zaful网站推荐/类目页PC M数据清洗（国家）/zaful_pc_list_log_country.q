@@ -258,13 +258,13 @@ FROM
 			glb_od,
 			concat_ws(
 				'#',
-				sku,
-				glb_tm,
-				rank,
-				page,
-				price,
-				discount_mark,
-				glb_x
+				IF(sku is NULL,'',sku),
+        IF(glb_tm is NULL,'',glb_tm),
+        IF(rank is NULL,'',rank),
+        IF(page is NULL,'',page),
+        IF(price is NULL,'',price),
+        IF(discount_mark is NULL,'',discount_mark),
+        IF(glb_x is NULL,'',glb_x)
 			) AS sku_info,
       country_code,
       glb_dc
