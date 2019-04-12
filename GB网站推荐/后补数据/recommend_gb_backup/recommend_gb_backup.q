@@ -165,7 +165,7 @@ FROM
 			pipeline_code IS NOT NULL
 		AND lang IS NOT NULL
 		AND id IS NOT NULL
-		--去除推荐位一二三四的sku--20190409--zhangyuchao
+		--去除推荐位一二三四的sku数据--20190409--zhangyuchao
 		AND good_sn IN (
 				select a.good_sn
 				from

@@ -106,7 +106,7 @@
 		<ok to="recommend_gb_backup_hive_one" />
 		<error to="failed_mail" />
 	</action>
-  <!-- 以下一分为四兜底的四个推荐位 20190409 zhangyuchao -->
+  <!-- 以下一分为四兜底的四个推荐位数据 20190409 zhangyuchao -->
 	<action name="recommend_gb_backup_hive_one">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
