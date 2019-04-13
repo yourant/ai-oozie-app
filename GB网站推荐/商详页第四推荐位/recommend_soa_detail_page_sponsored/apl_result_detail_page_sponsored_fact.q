@@ -22,12 +22,36 @@ FROM
 	dw_gearbest_recommend.goods_info_result_uniqlang n
 WHERE
 	n.good_sn IN (
+		--distinct sku--20190409-zhangyuchao
 		SELECT DISTINCT
-			good_sn
+			a.good_sn
 		FROM
-			ods.ods_m_gearbest_base_goods_new_goods_label
-		WHERE
-			label_code = '00000238'
+			ods.ods_m_gearbest_base_goods_new_goods_label a
+		left join
+			(select DISTINCT goods_sn2 
+			from dw_gearbest_recommend.gb_result_detail_page_gtq 
+			where concat(year, month, day)=${ADD_TIME} ) b
+		on 
+		   a.good_sn = b.goods_sn2 
+		left join 
+			(select DISTINCT goods_sn2 
+			from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+			where concat(year, month, day)=${ADD_TIME}) c
+		on a.good_sn = c.goods_sn2
+		left join 
+			(select distinct good_sn 
+			from dw_gearbest_recommend.apl_lable_new_fact) d
+		on a.good_sn = d.good_sn
+		left join 
+			(select distinct good_sn 
+			from dw_gearbest_recommend.apl_lable_money_fact) e
+		on a.good_sn = e.good_sn
+		where 
+			a.label_code = '00000238'
+		and b.goods_sn2 is null
+		and c.goods_sn2 is null	
+		and d.good_sn is null
+		and e.good_sn is null
 	);
 
 
@@ -42,12 +66,36 @@ WHERE
 			x.good_sn
 		FROM
 			(
-				SELECT
+				--distinct sku--20190409-zhangyuchao
+				SELECT DISTINCT
 					a.good_sn
 				FROM
 					ods.ods_m_gearbest_base_goods_goods a
-				WHERE
+				left join
+					(select DISTINCT goods_sn2 
+					from dw_gearbest_recommend.gb_result_detail_page_gtq 
+					where concat(year, month, day)=${ADD_TIME}) b
+				on 
+					a.good_sn = b.goods_sn2 
+				left join 
+					(select DISTINCT goods_sn2 
+					from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+					where concat(year, month, day)=${ADD_TIME}) c
+				on a.good_sn = c.goods_sn2 
+				left join 
+					(select distinct good_sn 
+					from dw_gearbest_recommend.apl_lable_new_fact) d
+				on a.good_sn = d.good_sn
+				left join 
+					(select distinct good_sn 
+					from dw_gearbest_recommend.apl_lable_money_fact) e
+				on a.good_sn = e.good_sn
+				where 
 					a.recommended_level = 14
+				and b.goods_sn2 is null
+				and c.goods_sn2 is null	
+				and d.good_sn is null
+				and e.good_sn is null
 			) x
 		JOIN stg.gb_order_order_goods m ON x.good_sn = m.goods_sn
 	);
