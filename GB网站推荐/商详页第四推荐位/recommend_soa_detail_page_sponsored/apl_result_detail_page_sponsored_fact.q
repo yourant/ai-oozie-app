@@ -15,7 +15,7 @@ SET hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 SET hive.merge.size.per.task=256000000;
 SET hive.exec.parallel = true; 
 
---DA商品池--
+--DA商品池
 INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_uniqlang_da SELECT
 	n.*
 FROM
@@ -23,29 +23,35 @@ FROM
 WHERE
 	n.good_sn IN (
 		--distinct sku--20190409-zhangyuchao
-		select a.good_sn
-		from 
-		(SELECT DISTINCT
-			good_sn
+		SELECT DISTINCT
+			a.good_sn
 		FROM
-			ods.ods_m_gearbest_base_goods_new_goods_label 
-		where	label_code = '00000238'
-		) a
+			ods.ods_m_gearbest_base_goods_new_goods_label a
 		left join
 			(select DISTINCT goods_sn2 
 			from dw_gearbest_recommend.gb_result_detail_page_gtq 
-			where concat(year, month, day)='20190410') b
+			where concat(year, month, day)=${ADD_TIME} ) b
 		on 
 		   a.good_sn = b.goods_sn2 
 		left join 
 			(select DISTINCT goods_sn2 
 			from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-			where concat(year, month, day)='20190410') c
-		on a.good_sn = c.goods_sn2 
-		
-		where b.goods_sn2 is null
-		and c.goods_sn2 is null
-		
+			where concat(year, month, day)=${ADD_TIME}) c
+		on a.good_sn = c.goods_sn2
+		left join 
+			(select distinct good_sn 
+			from dw_gearbest_recommend.apl_lable_new_fact) d
+		on a.good_sn = d.good_sn
+		left join 
+			(select distinct good_sn 
+			from dw_gearbest_recommend.apl_lable_money_fact) e
+		on a.good_sn = e.good_sn
+		where 
+			a.label_code = '00000238'
+		and b.goods_sn2 is null
+		and c.goods_sn2 is null	
+		and d.good_sn is null
+		and e.good_sn is null
 	);
 
 
@@ -61,27 +67,35 @@ WHERE
 		FROM
 			(
 				--distinct sku--20190409-zhangyuchao
-				select a.good_sn
-				from 
-				(SELECT DISTINCT
-					good_sn
+				SELECT DISTINCT
+					a.good_sn
 				FROM
-					ods.ods_m_gearbest_base_goods_goods 
-				where	recommended_level = 14
-				) a
+					ods.ods_m_gearbest_base_goods_goods a
 				left join
 					(select DISTINCT goods_sn2 
 					from dw_gearbest_recommend.gb_result_detail_page_gtq 
-					where concat(year, month, day)='20190410') b
+					where concat(year, month, day)=${ADD_TIME}) b
 				on 
 					a.good_sn = b.goods_sn2 
 				left join 
 					(select DISTINCT goods_sn2 
 					from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-					where concat(year, month, day)='20190410') c
+					where concat(year, month, day)=${ADD_TIME}) c
 				on a.good_sn = c.goods_sn2 
-				where b.goods_sn2 is null
+				left join 
+					(select distinct good_sn 
+					from dw_gearbest_recommend.apl_lable_new_fact) d
+				on a.good_sn = d.good_sn
+				left join 
+					(select distinct good_sn 
+					from dw_gearbest_recommend.apl_lable_money_fact) e
+				on a.good_sn = e.good_sn
+				where 
+					a.recommended_level = 14
+				and b.goods_sn2 is null
 				and c.goods_sn2 is null	
+				and d.good_sn is null
+				and e.good_sn is null
 			) x
 		JOIN stg.gb_order_order_goods m ON x.good_sn = m.goods_sn
 	);
