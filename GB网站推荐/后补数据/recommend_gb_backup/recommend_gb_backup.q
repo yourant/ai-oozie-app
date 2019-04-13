@@ -178,22 +178,32 @@ FROM
 				left join
 					(select DISTINCT goods_sn2 
 					from dw_gearbest_recommend.gb_result_detail_page_gtq 
-					where concat(year, month, day)='20190410') b
+					where concat(year, month, day)=${ADD_TIME}) b
 				on 
 				   a.good_sn = b.goods_sn2 
 				left join 
 					(select DISTINCT goods_sn2 
 					from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-					where concat(year, month, day)='20190410') c
+					where concat(year, month, day)=${ADD_TIME}) c
 				on 
 					a.good_sn = c.goods_sn2 
 				left join
 					( select distinct good_sn
 								from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
 				on a.good_sn = d.good_sn
+				left join 
+					(select distinct good_sn 
+					from dw_gearbest_recommend.apl_lable_new_fact) e
+				on a.good_sn = e.good_sn
+				left join 
+					(select distinct good_sn 
+					from dw_gearbest_recommend.apl_lable_money_fact) f
+				on a.good_sn = f.good_sn
 				where b.goods_sn2 is null
-				and c.goods_sn2 is null
+				and c.goods_sn2 is null	
 				and d.good_sn is null
+				and e.good_sn is null
+				and f.good_sn is null
 		)
 	) m
 WHERE
@@ -454,22 +464,32 @@ WHERE n.good_sn IN (
 			left join
 				(select DISTINCT goods_sn2 
 				from dw_gearbest_recommend.gb_result_detail_page_gtq 
-				where concat(year, month, day)='20190410') b
+				where concat(year, month, day)=${ADD_TIME}) b
 			on 
 				a.good_sn = b.goods_sn2 
 			left join 
 				(select DISTINCT goods_sn2 
 				from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-				where concat(year, month, day)='20190410') c
+				where concat(year, month, day)=${ADD_TIME}) c
 			on 
 				a.good_sn = c.goods_sn2 
 			left join
 				( select distinct good_sn
 							from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
 			on a.good_sn = d.good_sn
+			left join 
+				(select distinct good_sn 
+				from dw_gearbest_recommend.apl_lable_new_fact) e
+			on a.good_sn = e.good_sn
+			left join 
+				(select distinct good_sn 
+				from dw_gearbest_recommend.apl_lable_money_fact) f
+			on a.good_sn = f.good_sn
 			where b.goods_sn2 is null
-			and c.goods_sn2 is null
+			and c.goods_sn2 is null	
 			and d.good_sn is null
+			and e.good_sn is null
+			and f.good_sn is null
 		)	
 GROUP BY
 	m.pipeline_code,
