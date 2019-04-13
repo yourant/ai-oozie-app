@@ -12,27 +12,27 @@ SET hive.merge.mapfiles=true;
 SET hive.merge.mapredfiles= true;
 SET hive.merge.size.per.task=256000000; 
 
-CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_backup_allcategoryids(
-  `pipeline_code` string, 
-   `lang` string)
-COMMENT '推荐位后补兜底所有的categoryid需要补全的'
-ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
-LINES TERMINATED BY '\n'                                                                                          
-STORED AS TEXTFILE;
+-- CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_backup_allcategoryids(
+--   `pipeline_code` string, 
+--    `lang` string)
+-- COMMENT '推荐位后补兜底所有的categoryid需要补全的'
+-- ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+-- LINES TERMINATED BY '\n'                                                                                          
+-- STORED AS TEXTFILE;
 
-INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup_allcategoryids
-SELECT
-	m.pipeline_code, 
-	m.lang
-FROM
-	(
-		select 
-			pipeline_code, lang, count(1) 
-		from 
-			dw_gearbest_recommend.goods_info_result_uniqlang_filtered 
-		group by 
-			pipeline_code,lang
-	) m;
+-- INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup_allcategoryids
+-- SELECT
+-- 	m.pipeline_code, 
+-- 	m.lang
+-- FROM
+-- 	(
+-- 		select 
+-- 			pipeline_code, lang, count(1) 
+-- 		from 
+-- 			dw_gearbest_recommend.goods_info_result_uniqlang_filtered 
+-- 		group by 
+-- 			pipeline_code,lang
+-- 	) m;
 
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_backup_nocategoryid(
   `good_sn` string, 
@@ -204,9 +204,9 @@ INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup_nocategory
 	select 
 		  b.good_sn, 
 		  b.goods_web_sku, 
-		  a.pipeline_code,
+		  b.pipeline_code,
 		  b.good_title,
-		  a.lang,
+		  b.lang,
 		  b.v_wh_code,
 		  b.total_num,
 		  b.avg_score, 
@@ -219,38 +219,59 @@ INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup_nocategory
 		  b.thumb_extend_url, 
 		  b.url_title
     FROM
-        (select 
-            pipeline_code, 
-            lang
-        from dw_gearbest_recommend.goods_info_result_backup_allcategoryids ) a
-    left join
-        (select 
-		  good_sn, 
-		  goods_spu, 
-		  goods_web_sku, 
-		  shop_code, 
-		  goods_status, 
-		  brand_code, 
-		  first_up_time, 
-		  v_wh_code, 
-		  shop_price, 
-		  level_cnt, 
-		  good_title, 
-		  img_url, 
-		  grid_url, 
-		  thumb_url, 
-		  thumb_extend_url, 
-		  lang, 
-		  stock_qty, 
-		  avg_score, 
-		  total_num, 
-		  total_favorite, 
-		  pipeline_code, 
-		  url_title
-	    from 
-            dw_gearbest_recommend.goods_info_result_backup_nocategoryid ) b
-    on  a.pipeline_code=b.pipeline_code 
-        and a.lang=b.lang;
+      dw_gearbest_recommend.goods_info_result_backup_nocategoryid b
+
+-- INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result
+-- 	select 
+-- 		  b.good_sn, 
+-- 		  b.goods_web_sku, 
+-- 		  a.pipeline_code,
+-- 		  b.good_title,
+-- 		  a.lang,
+-- 		  b.v_wh_code,
+-- 		  b.total_num,
+-- 		  b.avg_score, 
+-- 		  b.shop_price, 
+-- 		  b.total_favorite,
+-- 		  b.stock_qty, 
+-- 		  b.img_url, 
+-- 		  b.grid_url, 
+-- 		  b.thumb_url, 
+-- 		  b.thumb_extend_url, 
+-- 		  b.url_title
+--     FROM
+--         (select 
+--             pipeline_code, 
+--             lang
+--         from dw_gearbest_recommend.goods_info_result_backup_allcategoryids ) a
+--     left join
+--         (select 
+-- 		  good_sn, 
+-- 		  goods_spu, 
+-- 		  goods_web_sku, 
+-- 		  shop_code, 
+-- 		  goods_status, 
+-- 		  brand_code, 
+-- 		  first_up_time, 
+-- 		  v_wh_code, 
+-- 		  shop_price, 
+-- 		  level_cnt, 
+-- 		  good_title, 
+-- 		  img_url, 
+-- 		  grid_url, 
+-- 		  thumb_url, 
+-- 		  thumb_extend_url, 
+-- 		  lang, 
+-- 		  stock_qty, 
+-- 		  avg_score, 
+-- 		  total_num, 
+-- 		  total_favorite, 
+-- 		  pipeline_code, 
+-- 		  url_title
+-- 	    from 
+--             dw_gearbest_recommend.goods_info_result_backup_nocategoryid ) b
+--     on  a.pipeline_code=b.pipeline_code 
+--         and a.lang=b.lang;
 
 --下面将结果表分为四个表，后补兜底推荐表，无分类数据，分别写入Redis，每个表进行插入至少30条
 --保证pipeline_code,lang,categoryid维度下面，每一个组合都有至少30条
