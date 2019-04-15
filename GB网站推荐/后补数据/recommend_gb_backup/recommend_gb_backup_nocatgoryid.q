@@ -219,7 +219,7 @@ INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup_nocategory
 		  b.thumb_extend_url, 
 		  b.url_title
     FROM
-      dw_gearbest_recommend.goods_info_result_backup_nocategoryid b
+      dw_gearbest_recommend.goods_info_result_backup_nocategoryid b;
 
 -- INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result
 -- 	select 
