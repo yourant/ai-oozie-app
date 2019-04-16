@@ -14,6 +14,7 @@ SET hive.merge.mapredfiles= true;
 SET hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 SET hive.merge.size.per.task=256000000;
 SET hive.exec.parallel = true; 
+SET hive.auto.convert.join=false;--关闭优化 20190415 zhangyuchao
 
 --DA商品池
 INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_uniqlang_da SELECT
