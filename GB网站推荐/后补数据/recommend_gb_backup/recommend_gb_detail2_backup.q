@@ -579,10 +579,10 @@ LEFT OUTER JOIN
 ON t1.goods_spu = t4.goods_spu 
 AND t1.pipeline_code = t4.pipeline_code 
 AND t1.lang = t4.lang 
-LEFT OUTER JOIN dw_gearbest_recommend.goods_info_result_backup_detail2_ctg t5 
-ON t1.goods_spu = t5.goods_spu 
-AND t1.pipeline_code = t5.pipeline_code 
-AND t1.lang = t5.lang 
-WHERE t5.goods_spu is null
-AND t4.goods_spu is null
+-- LEFT OUTER JOIN dw_gearbest_recommend.goods_info_result_backup_detail2_ctg t5 
+-- ON t1.goods_spu = t5.goods_spu 
+-- AND t1.pipeline_code = t5.pipeline_code 
+-- AND t1.lang = t5.lang 
+--WHERE t5.goods_spu is null
+WHERE t4.goods_spu is null
 ;
