@@ -305,6 +305,7 @@
 		<ok to="fork_1" />
 		<error to="failed_mail" />
 	</action>
+
 	<fork name='fork_1'>
 		<path start="soa_hot_sell_step_1_1" />
 		<path start="soa_hot_sell_step_1_2" />
@@ -355,11 +356,45 @@
 			<param>MONTH=${MONTH}</param>
 			<param>DAY=${DAY}</param>
 			<param>DATE=${DATE}</param>
-
 		</hive>
-		<ok to="join_2" />
+		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />
 	</action>
+	<action name="doneflag_toredis">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>DoneFlag2Redis(gb_recommend_base_data)</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlag2Redis</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_recommend_base_data/lib/recommender.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>${YEAR}${MONTH}${DAY}</arg>
+			<arg>gb_recommend_base_data</arg>
+			<arg>goods_info_result_uniqlang,goods_info_result_uniq,goods_info_result_rec,goods_info_result,goods_info_mid1,goods_spu_hotsell_15days</arg>
+        </spark> 
+        <ok to="join_2"/>
+        <error to="failed_mail"/>
+    </action>
 	<action name="soa_hot_sell_step_1_2">
 		<hive xmlns="uri:oozie:hive-action:0.2">
 			<job-tracker>${jobTracker}</job-tracker>
@@ -621,6 +656,7 @@
 		<ok to="end" />
 		<error to="failed_mail" />
 	</action>
+
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
 			<to>bigdata@globalegrow.com

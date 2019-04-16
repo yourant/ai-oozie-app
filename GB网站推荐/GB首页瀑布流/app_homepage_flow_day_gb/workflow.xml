@@ -1,5 +1,40 @@
 <workflow-app name="app_homepage_flow_gb_day-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="site_multi_lang_brand" />
+	<start to="DoneFlagChecker" />	
+	<action name="DoneFlagChecker">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>DoneFlagChecker(gb_recommend_base_data)</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlagChecker</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_recommend_base_data/lib/recommender.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>${YEAR}${MONTH}${DAY}</arg>
+			<arg>gb_recommend_base_data</arg>
+			<arg>goods_info_mid1</arg>
+        </spark> 
+        <ok to="site_multi_lang_brand"/>
+        <error to="failed_mail"/>
+    </action>
 	<action name="site_multi_lang_brand">
 		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
 			<job-tracker>${jobTracker}</job-tracker>
