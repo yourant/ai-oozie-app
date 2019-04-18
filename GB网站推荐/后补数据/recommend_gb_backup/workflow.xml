@@ -1,5 +1,6 @@
 <workflow-app name="recommend_gb_backup-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="DoneFlagChecker" />
+	<!-- <start to="DoneFlagChecker" /> -->
+<start to="pipeline_language_import">
 <action name="DoneFlagChecker">
          <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${jobTracker}</job-tracker>
@@ -101,22 +102,6 @@
                    <name>mapred.job.queue.name</name>
                    <value>${queueName}</value>
                 </property>
-								<property>
-					<name>YEAR</name>
-					<value>${YEAR}</value>
-				</property>
-				<property>
-					<name>MONTH</name>
-					<value>${MONTH}</value>
-				</property>
-				<property>
-					<name>DAY</name>
-					<value>${DAY}</value>
-				</property>
-				<property>
-					<name>DATE</name>
-					<value>${DATE}</value>
-				</property>
             </configuration>
             <script>recommend_gb_backup_nocatgoryid.q</script>
 						<param>ADD_TIME=${ADD_TIME}</param>
@@ -138,22 +123,6 @@
                    <name>mapred.job.queue.name</name>
                    <value>${queueName}</value>
                 </property>
-								<property>
-					<name>YEAR</name>
-					<value>${YEAR}</value>
-				</property>
-				<property>
-					<name>MONTH</name>
-					<value>${MONTH}</value>
-				</property>
-				<property>
-					<name>DAY</name>
-					<value>${DAY}</value>
-				</property>
-				<property>
-					<name>DATE</name>
-					<value>${DATE}</value>
-				</property>
             </configuration>
             <script>recommend_gb_backup.q</script>
 						<param>ADD_TIME=${ADD_TIME}</param>
