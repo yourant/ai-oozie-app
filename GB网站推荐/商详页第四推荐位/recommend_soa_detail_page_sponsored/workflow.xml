@@ -52,6 +52,7 @@
                 </property>
             </configuration>
             <script>apl_result_detail_page_sponsored_fact.q</script>
+						<param>ADD_TIME=${ADD_TIME}</param>
         </hive>
         <ok to="recommend_soa_detail_page_sponsored_redis"/>
         <error to="failed_mail"/>
