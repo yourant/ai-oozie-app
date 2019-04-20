@@ -11,6 +11,7 @@ SET hive.exec.reducers.bytes.per.reducer = 128000000;
 SET hive.merge.mapfiles=true;
 SET hive.merge.mapredfiles= true;
 SET hive.merge.size.per.task=256000000; 
+use dw_gearbest_recommend;
 
 -- CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_backup_allcategoryids(
 --   `pipeline_code` string, 
@@ -34,6 +35,39 @@ SET hive.merge.size.per.task=256000000;
 -- 			pipeline_code,lang
 -- 	) m;
 
+
+--过滤算法sku
+DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_skus;
+CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_skus as
+	select DISTINCT goods_sn2 as good_sn
+		from dw_gearbest_recommend.gb_result_detail_page_gtq 
+		where concat(year, month, day)=${ADD_TIME}
+	UNION ALL
+	select DISTINCT goods_sn2 as good_sn 
+		from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+		where concat(year, month, day)=${ADD_TIME}
+    ;
+
+--过滤第四推荐位、新品、盈利下相同pipeline_code,lang,catid的sku
+DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_cat_skus;
+CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_cat_skus as
+	select good_sn,pipeline_code,lang,categoryid as catid
+		from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact
+	UNION ALL
+	select good_sn,pipeline_code,lang,catid
+		from dw_gearbest_recommend.apl_lable_new_fact 
+	UNION ALL
+	select good_sn,pipeline_code,lang,catid
+		from dw_gearbest_recommend.apl_lable_money_fact
+    ;
+	
+--过滤无分类相同pipeline_code,lang下的sku
+DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_skus;
+CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_skus as
+	select good_sn,pipeline_code,lang 
+		from dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result GROUP BY good_sn,pipeline_code,lang
+    ;
+    
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_backup_nocategoryid(
   `good_sn` string, 
   `goods_spu` string, 
@@ -120,28 +154,18 @@ FROM
 			) AS flag
 		FROM
 			dw_gearbest_recommend.goods_info_result_uniqlang_filtered a
-		left join
-            (select DISTINCT goods_sn2 
-            from dw_gearbest_recommend.gb_result_detail_page_gtq 
-            where concat(year, month, day)=${ADD_TIME}) b
-        on 
-            a.good_sn = b.goods_sn2 
-        left join 
-            (select DISTINCT goods_sn2 
-            from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-            where concat(year, month, day)=${ADD_TIME}) c
-        on 
-            a.good_sn = c.goods_sn2 
+		    left join
+		      tmp_gb_result_detail_page_skus b
+        on  a.good_sn = b.good_sn 
         left join
-            ( select distinct good_sn
-                        from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
-				on a.good_sn = d.good_sn
+          tmp_gb_result_detail_page_pileline_lang_cat_skus c
+        on 
+          a.good_sn = c.good_sn and a.pipeline_code = c.pipeline_code and a.lang = c.lang 
 		WHERE
 			a.pipeline_code IS NOT NULL
 		AND a.lang IS NOT NULL
-		and b.goods_sn2 is null
-		and c.goods_sn2 is null
-		and d.good_sn is null
+		and b.good_sn is null
+		and c.good_sn is null
 	) m
 WHERE
 	m.flag <= 200;

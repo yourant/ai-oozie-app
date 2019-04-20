@@ -16,6 +16,27 @@ SET hive.merge.size.per.task=256000000;
 SET hive.exec.parallel = true; 
 SET hive.auto.convert.join=false;--关闭优化 20190415 zhangyuchao
 
+
+
+--过滤算法sku
+DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_skus_4detail;
+CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_skus_4detail as
+	select DISTINCT goods_sn2 as good_sn
+		from dw_gearbest_recommend.gb_result_detail_page_gtq 
+		where concat(year, month, day)=${ADD_TIME}
+	UNION ALL
+	select DISTINCT goods_sn2 as good_sn
+		from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+		where concat(year, month, day)=${ADD_TIME}
+	UNION ALL
+	select DISTINCT good_sn
+		from dw_gearbest_recommend.apl_lable_new_fact
+	UNION ALL
+	select DISTINCT good_sn
+		from dw_gearbest_recommend.apl_lable_money_fact
+		;
+
+
 --DA商品池
 INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_uniqlang_da SELECT
 	n.*
@@ -28,31 +49,32 @@ WHERE
 			a.good_sn
 		FROM
 			ods.ods_m_gearbest_base_goods_new_goods_label a
+		-- left join
+		-- 	(select DISTINCT goods_sn2 
+		-- 	from dw_gearbest_recommend.gb_result_detail_page_gtq 
+		-- 	where concat(year, month, day)=${ADD_TIME} ) b
+		-- on 
+		--    a.good_sn = b.goods_sn2 
+		-- left join 
+		-- 	(select DISTINCT goods_sn2 
+		-- 	from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+		-- 	where concat(year, month, day)=${ADD_TIME}) c
+		-- on a.good_sn = c.goods_sn2
+		-- left join 
+		-- 	(select distinct good_sn 
+		-- 	from dw_gearbest_recommend.apl_lable_new_fact) d
+		-- on a.good_sn = d.good_sn
+		-- left join 
+		-- 	(select distinct good_sn 
+		-- 	from dw_gearbest_recommend.apl_lable_money_fact) e
+		-- on a.good_sn = e.good_sn
 		left join
-			(select DISTINCT goods_sn2 
-			from dw_gearbest_recommend.gb_result_detail_page_gtq 
-			where concat(year, month, day)=${ADD_TIME} ) b
+			dw_gearbest_recommend.tmp_gb_result_detail_page_skus_4detail b
 		on 
-		   a.good_sn = b.goods_sn2 
-		left join 
-			(select DISTINCT goods_sn2 
-			from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-			where concat(year, month, day)=${ADD_TIME}) c
-		on a.good_sn = c.goods_sn2
-		left join 
-			(select distinct good_sn 
-			from dw_gearbest_recommend.apl_lable_new_fact) d
-		on a.good_sn = d.good_sn
-		left join 
-			(select distinct good_sn 
-			from dw_gearbest_recommend.apl_lable_money_fact) e
-		on a.good_sn = e.good_sn
+			a.good_sn = b.good_sn 
 		where 
 			a.label_code = '00000238'
-		and b.goods_sn2 is null
-		and c.goods_sn2 is null	
-		and d.good_sn is null
-		and e.good_sn is null
+			and b.good_sn is null
 	);
 
 
@@ -72,31 +94,35 @@ WHERE
 					a.good_sn
 				FROM
 					ods.ods_m_gearbest_base_goods_goods a
+				-- left join
+				-- 	(select DISTINCT goods_sn2 
+				-- 	from dw_gearbest_recommend.gb_result_detail_page_gtq 
+				-- 	where concat(year, month, day)=${ADD_TIME}) b
+				-- on 
+				-- 	a.good_sn = b.goods_sn2 
+				-- left join 
+				-- 	(select DISTINCT goods_sn2 
+				-- 	from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+				-- 	where concat(year, month, day)=${ADD_TIME}) c
+				-- on a.good_sn = c.goods_sn2 
+				-- left join 
+				-- 	(select distinct good_sn 
+				-- 	from dw_gearbest_recommend.apl_lable_new_fact) d
+				-- on a.good_sn = d.good_sn
+				-- left join 
+				-- 	(select distinct good_sn 
+				-- 	from dw_gearbest_recommend.apl_lable_money_fact) e
+				-- on a.good_sn = e.good_sn				
 				left join
-					(select DISTINCT goods_sn2 
-					from dw_gearbest_recommend.gb_result_detail_page_gtq 
-					where concat(year, month, day)=${ADD_TIME}) b
+					dw_gearbest_recommend.tmp_gb_result_detail_page_skus_4detail b
 				on 
-					a.good_sn = b.goods_sn2 
-				left join 
-					(select DISTINCT goods_sn2 
-					from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-					where concat(year, month, day)=${ADD_TIME}) c
-				on a.good_sn = c.goods_sn2 
-				left join 
-					(select distinct good_sn 
-					from dw_gearbest_recommend.apl_lable_new_fact) d
-				on a.good_sn = d.good_sn
-				left join 
-					(select distinct good_sn 
-					from dw_gearbest_recommend.apl_lable_money_fact) e
-				on a.good_sn = e.good_sn
+					a.good_sn = b.good_sn 
 				where 
 					a.recommended_level = 14
-				and b.goods_sn2 is null
-				and c.goods_sn2 is null	
-				and d.good_sn is null
-				and e.good_sn is null
+				and b.good_sn is null
+				-- and c.goods_sn2 is null	
+				-- and d.good_sn is null
+				-- and e.good_sn is null
 			) x
 		JOIN stg.gb_order_order_goods m ON x.good_sn = m.goods_sn
 	);
@@ -812,7 +838,17 @@ FROM
 			n.good_sn
 		FROM
 			dw_gearbest_recommend.goods_da_bf_merge m
-		JOIN dw_gearbest_recommend.goods_info_mid5 n ON m.goods_spu = n.goods_spu
+		JOIN 
+		--dw_gearbest_recommend.goods_info_mid5
+		( 
+			SELECT a.good_sn,a.goods_spu 
+			FROM 
+				dw_gearbest_recommend.goods_info_mid5 a
+			left join 
+				dw_gearbest_recommend.tmp_gb_result_detail_page_skus_4detail b
+			on 
+				a.good_sn = b.good_sn 
+		) n ON m.goods_spu = n.goods_spu
 	) t1
 JOIN dw_gearbest_recommend.goods_info_result_uniqlang t3 ON t1.good_sn = t3.good_sn
 AND t1.pipeline_code = t3.pipeline_code

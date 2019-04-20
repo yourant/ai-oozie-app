@@ -11,6 +11,7 @@ SET hive.exec.reducers.bytes.per.reducer = 128000000;
 SET hive.merge.mapfiles=true;
 SET hive.merge.mapredfiles= true;
 SET hive.merge.size.per.task=256000000; 
+use dw_gearbest_recommend;
 
 --pipeline_language_map更新
 INSERT OVERWRITE TABLE dw_gearbest_recommend.pipeline_language_map  SELECT
@@ -162,44 +163,53 @@ FROM
 		FROM
 			dw_gearbest_recommend.goods_info_result_uniqlang_filtered t_filter
 			--去除推荐位一二三四的sku和无分类的sku和其他规定的表推荐的sku--20190409--zhangyuchao
+		-- left join
+		-- 	(select DISTINCT goods_sn2 
+		-- 	from dw_gearbest_recommend.gb_result_detail_page_gtq 
+		-- 	where concat(year, month, day)=${ADD_TIME}) b
+		-- on 
+		-- 	t_filter.good_sn = b.goods_sn2 
+		-- left join 
+		-- 	(select DISTINCT goods_sn2 
+		-- 	from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+		-- 	where concat(year, month, day)=${ADD_TIME}) c
+		-- on 
+		-- 	t_filter.good_sn = c.goods_sn2 
+		-- left join
+		-- 	( select distinct good_sn
+		-- 				from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
+		-- on t_filter.good_sn = d.good_sn
+		-- left join 
+		-- 	(select distinct good_sn 
+		-- 	from dw_gearbest_recommend.apl_lable_new_fact) e
+		-- on t_filter.good_sn = e.good_sn
+		-- left join 
+		-- 	(select distinct good_sn 
+		-- 	from dw_gearbest_recommend.apl_lable_money_fact) f
+		-- on t_filter.good_sn = f.good_sn
+		-- left join 
+		-- 	(select distinct good_sn 
+		-- 	from dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result) t_nocatgoryid_result
+		-- on t_filter.good_sn = t_nocatgoryid_result.good_sn	
 		left join
-			(select DISTINCT goods_sn2 
-			from dw_gearbest_recommend.gb_result_detail_page_gtq 
-			where concat(year, month, day)=${ADD_TIME}) b
+			tmp_gb_result_detail_page_skus b
 		on 
-			t_filter.good_sn = b.goods_sn2 
-		left join 
-			(select DISTINCT goods_sn2 
-			from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-			where concat(year, month, day)=${ADD_TIME}) c
-		on 
-			t_filter.good_sn = c.goods_sn2 
+			t_filter.good_sn = b.good_sn 
 		left join
-			( select distinct good_sn
-						from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
-		on t_filter.good_sn = d.good_sn
-		left join 
-			(select distinct good_sn 
-			from dw_gearbest_recommend.apl_lable_new_fact) e
-		on t_filter.good_sn = e.good_sn
-		left join 
-			(select distinct good_sn 
-			from dw_gearbest_recommend.apl_lable_money_fact) f
-		on t_filter.good_sn = f.good_sn
-		left join 
-			(select distinct good_sn 
-			from dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result) t_nocatgoryid_result
-		on t_filter.good_sn = t_nocatgoryid_result.good_sn	
+			tmp_gb_result_detail_page_pileline_lang_cat_skus c
+		on 
+			t_filter.good_sn = c.good_sn and t_filter.pipeline_code = c.pipeline_code and t_filter.lang = c.lang and t_filter.id = c.catid
+		left join
+			tmp_gb_result_detail_page_pileline_lang_skus d
+		on 
+			t_filter.good_sn = d.good_sn and t_filter.pipeline_code = d.pipeline_code and t_filter.lang = d.lang 
 		where 
 			t_filter.pipeline_code IS NOT NULL
 		AND t_filter.lang IS NOT NULL
 		AND t_filter.id IS NOT NULL
-		and b.goods_sn2 is null
-		and c.goods_sn2 is null	
+		and b.good_sn is null
+		and c.good_sn is null	
 		and d.good_sn is null
-		and e.good_sn is null
-		and f.good_sn is null
-		and t_nocatgoryid_result.good_sn is null
 	) m
 WHERE
 	m.flag <= 200;
@@ -450,41 +460,50 @@ FROM
 JOIN dw_gearbest_recommend.goods_info_result_uniq n ON m.pipeline_code = n.pipeline_code
 AND m.goods_spu = n.goods_spu
 --去除推荐位一二三四的sku和无分类的sku和其他规定的表推荐的sku--20190409--zhangyuchao
-left join
-	(select DISTINCT goods_sn2 
-	from dw_gearbest_recommend.gb_result_detail_page_gtq 
-	where concat(year, month, day)=${ADD_TIME}) b
-on 
-	n.good_sn = b.goods_sn2 
-left join 
-	(select DISTINCT goods_sn2 
-	from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-	where concat(year, month, day)=${ADD_TIME}) c
-on 
-	n.good_sn = c.goods_sn2 
-left join
-	( select distinct good_sn
-				from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
-on n.good_sn = d.good_sn
-left join 
-	(select distinct good_sn 
-	from dw_gearbest_recommend.apl_lable_new_fact) e
-on n.good_sn = e.good_sn
-left join 
-	(select distinct good_sn 
-	from dw_gearbest_recommend.apl_lable_money_fact) f
-on n.good_sn = f.good_sn
-left join 
-	(select distinct good_sn 
-	from dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result) t_nocatgoryid_result
-on n.good_sn = t_nocatgoryid_result.good_sn	
+-- left join
+-- 	(select DISTINCT goods_sn2 
+-- 	from dw_gearbest_recommend.gb_result_detail_page_gtq 
+-- 	where concat(year, month, day)=${ADD_TIME}) b
+-- on 
+-- 	n.good_sn = b.goods_sn2 
+-- left join 
+-- 	(select DISTINCT goods_sn2 
+-- 	from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+-- 	where concat(year, month, day)=${ADD_TIME}) c
+-- on 
+-- 	n.good_sn = c.goods_sn2 
+-- left join
+-- 	( select distinct good_sn
+-- 				from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact) d
+-- on n.good_sn = d.good_sn
+-- left join 
+-- 	(select distinct good_sn 
+-- 	from dw_gearbest_recommend.apl_lable_new_fact) e
+-- on n.good_sn = e.good_sn
+-- left join 
+-- 	(select distinct good_sn 
+-- 	from dw_gearbest_recommend.apl_lable_money_fact) f
+-- on n.good_sn = f.good_sn
+-- left join 
+-- 	(select distinct good_sn 
+-- 	from dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result) t_nocatgoryid_result
+-- on n.good_sn = t_nocatgoryid_result.good_sn	
+	left join
+		tmp_gb_result_detail_page_skus b
+	on 
+		n.good_sn = b.good_sn 
+	left join
+		tmp_gb_result_detail_page_pileline_lang_cat_skus c
+	on 
+		n.good_sn = c.good_sn and m.pipeline_code = c.pipeline_code and n.lang = c.lang and m.category_id = c.catid
+	left join
+		tmp_gb_result_detail_page_pileline_lang_skus d
+	on 
+		n.good_sn = d.good_sn and m.pipeline_code = d.pipeline_code and n.lang = d.lang 
 where 
-		b.goods_sn2 is null
-	and c.goods_sn2 is null	
-	and d.good_sn is null
-	and e.good_sn is null
-	and f.good_sn is null
-	and t_nocatgoryid_result.good_sn is null	
+		b.good_sn is null
+	and c.good_sn is null	
+	and d.good_sn is null	
 GROUP BY
 	m.pipeline_code,
 	m.goods_spu,
@@ -582,7 +601,25 @@ FROM
 			n.good_sn
 		FROM
 			dw_gearbest_recommend.goods_backup_mid m
-		JOIN dw_gearbest_recommend.goods_info_mid5 n ON m.goods_spu = n.goods_spu
+		JOIN 
+			dw_gearbest_recommend.goods_info_mid5 n 
+		ON m.goods_spu = n.goods_spu
+		left join
+			tmp_gb_result_detail_page_skus b
+		on 
+			n.good_sn = b.good_sn 
+		left join
+			tmp_gb_result_detail_page_pileline_lang_cat_skus c
+		on 
+			n.good_sn = c.good_sn and m.pipeline_code = c.pipeline_code	and m.lang = c.lang and m.category_id = c.catid
+		left join
+			tmp_gb_result_detail_page_pileline_lang_skus d
+		on 
+			n.good_sn = d.good_sn and m.pipeline_code = d.pipeline_code	and m.lang = d.lang
+		where 
+				b.good_sn is null
+			and c.good_sn is null	
+			and d.good_sn is null	
 	) t1
 JOIN 
 ( 
@@ -606,6 +643,7 @@ WHERE
 ON t1.good_sn = t3.good_sn
 AND t1.pipeline_code = t3.pipeline_code
 AND t1.lang = t3.lang
+
 ;
 --20190409  zhangyuchao
 --下面将结果表分为四个表，后补兜底推荐表，分别写入Redis，每个表进行插入至少35条
