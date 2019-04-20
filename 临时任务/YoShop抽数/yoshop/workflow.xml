@@ -1,5 +1,5 @@
 <workflow-app name="yoshop_data_import-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="ys_cart_import" />
+	<start to="ys_goods_import" />
 	    <action name="ys_cart_import">
         <sqoop xmlns="uri:oozie:sqoop-action:0.2">
             <job-tracker>${jobTracker}</job-tracker>
@@ -150,7 +150,7 @@
 			      <arg>-m</arg>
 			      <arg>4</arg>
         </sqoop>
-        <ok to="ys_order_goods_import"/>
+        <ok to="ys_warehouse_goods_import"/>
         <error to="failed_mail"/> 
 			</action>
 <action name="ys_order_goods_import">
@@ -354,7 +354,7 @@
 			      <arg>-m</arg>
 			      <arg>4</arg>
         </sqoop>
-        <ok to="ys_goods_on_sale_hive"/>
+        <ok to="end"/>
         <error to="failed_mail"/>
        </action>
        <action name="ys_goods_on_sale_hive">
