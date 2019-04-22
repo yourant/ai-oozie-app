@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="recommend_soa_base_gb-coord"
+<coordinator-app name="recommend_soa_base_gb-coord_SNB25641_1"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
@@ -87,6 +87,10 @@
 					<name>TODAY</name>
 					<value>${coord:dataOut('today')}</value>
 				</property>
+				<property>
+                    <name>STARTTIME</name>
+					<value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd HH:mm:ss")}</value>					
+                </property>
 			</configuration>
 		</workflow>
 	</action>

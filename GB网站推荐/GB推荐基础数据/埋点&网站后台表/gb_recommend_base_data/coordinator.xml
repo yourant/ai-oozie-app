@@ -3,7 +3,6 @@
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
-	    <timeout>-1</timeout>
 		<execution>FIFO</execution>
 	</controls>
 	<datasets>

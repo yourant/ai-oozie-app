@@ -3,7 +3,6 @@
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
-	    <timeout>-1</timeout>
 		<execution>FIFO</execution>
 	</controls>
 	<datasets>
@@ -24,7 +23,7 @@
 		</dataset>
 		<dataset name="dout" frequency="${coord:days(1)}"
 			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
-			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>${YEAR}${MONTH}${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="wdout" frequency="${coord:days(1)}"
@@ -81,6 +80,10 @@
 					<name>ADD_TIME_W</name>
 					<value>${coord:dataOut('wdate')}</value>
 				</property>
+				<property>
+                    <name>STARTTIME</name>
+					<value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd HH:mm:ss")}</value>					
+                </property>
 			</configuration>
 		</workflow>
 	</action>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="recommend_gb_backup-coord"
+<coordinator-app name="recommend_gb_backup-coord_SNB25641_3"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
@@ -24,7 +24,7 @@
 		</dataset>
 		<dataset name="dout" frequency="${coord:days(1)}"
 			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
-			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
+			<uri-template>${YEAR}${MONTH}${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="wdout" frequency="${coord:days(1)}"
@@ -32,17 +32,17 @@
 			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
-<dataset name="input_data01" frequency="${coord:days(1)}"
+<!-- <dataset name="input_data01" frequency="${coord:days(1)}"
 			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
 			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_proj_trigger/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
-</dataset>
+</dataset> -->
 	</datasets>
-<input-events>
+<!-- <input-events>
 		<data-in name="input01" dataset="input_data01">
 			<instance>${coord:current(0)}</instance>
 		</data-in>
-</input-events>
+</input-events> -->
 	<output-events>
 		<data-out name="year" dataset="yearout">
 			<instance>${coord:current(-1)}</instance>
@@ -85,6 +85,10 @@
 					<name>ADD_TIME_W</name>
 					<value>${coord:dataOut('wdate')}</value>
 				</property>
+				<property>
+                    <name>STARTTIME</name>
+					<value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd HH:mm:ss")}</value>					
+                </property>
 			</configuration>
 		</workflow>
 	</action>
