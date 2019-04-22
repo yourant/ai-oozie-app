@@ -175,7 +175,7 @@ FROM(
 		dw_zaful_recommend.goods_country_hotsell
 	) a
 JOIN
-	dw_zaful_recommend.apl_zaful_result_attr_fact b
+	tmp.apl_zaful_result_attr_fact b
 ON
 	a.goods_sn = b.goodssn
 ;

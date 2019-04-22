@@ -1,6 +1,28 @@
 <workflow-app name="gb_computer-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="hive_to_mongodb" />
-
+	<start to="emp_gb_computer_tool_ai_hive" />
+		<action name="emp_gb_computer_tool_ai_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>emp_gb_computer_tool_ai.q</script>
+            <param>YEAR=${YEAR}</param>
+            <param>MONTH=${MONTH}</param>
+            <param>DAY=${DAY}</param>
+        </hive>
+        <ok to="hive_to_mongodb"/>
+        <error to="failed_mail"/>
+    </action>
 
 	<action name="hive_to_mongodb">
 		<java>

@@ -1,4 +1,4 @@
-<workflow-app name="result_gb_systm_email_fact-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="result_rg_system_email_rg_cf-wf" xmlns="uri:oozie:workflow:0.5">
 	<start to="add_partition" />
 
      <action name="add_partition">
@@ -21,11 +21,11 @@
 			 <param>MONTH=${MONTH}</param>
 			 <param>DAY=${DAY}</param>
         </hive>
-        <ok to="result_gb_systm_email_gtq_tohive"/>
+        <ok to="result_rg_system_email_rg_cf_tohive"/>
         <error to="failed_mail"/>
     </action> 
 
-    <action name="result_gb_systm_email_gtq_tohive">
+    <action name="result_rg_system_email_rg_cf_tohive">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
 			<name-node>${nameNode}</name-node>
@@ -48,17 +48,17 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.mongotohive.EMPMongo2HiveMR</main-class>
-            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/result_gb_systm_email_gtq/year=${YEAR}/month=${MONTH}/day=${DAY}/</arg>
+            <arg>/user/hive/warehouse/dw_rg_recommend.db/result_rg_system_email_rg_cf/year=${YEAR}/month=${MONTH}/day=${DAY}/</arg>
             <arg>172.31.27.16</arg>
             <arg>27017</arg>
             <arg>recommender_online</arg>
-            <arg>result_gb_systm_email_gtq</arg>
+            <arg>result_rg_system_email_rg_cf</arg>
 		</java>
-		<ok to="result_gb_systm_email_fact_hive" />
+		<ok to="result_rg_system_email_rg_cf_hive" />
 		<error to="failed_mail" />
 	</action>
 
-    <action name="result_gb_systm_email_fact_hive">
+    <action name="result_rg_system_email_rg_cf_hive">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${jobTracker}</job-tracker>
             <name-node>${nameNode}</name-node>
@@ -73,13 +73,13 @@
                    <value>${queueName}</value>
                 </property>
             </configuration>
-            <script>apl_result_gb_systm_email_fact.q</script>
+            <script>apl_result_rg_system_email_rg_cf.q</script>
             <param>ADD_TIME=${ADD_TIME}</param>
         </hive>
-        <ok to="result_gb_systm_email_fact_tohbase"/>
+        <ok to="result_rg_system_email_rg_cf_tohbase"/>
         <error to="failed_mail"/>
     </action> 
-<action name="result_gb_systm_email_fact_tohbase">
+<action name="result_rg_system_email_rg_cf_tohbase">
          <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${jobTracker}</job-tracker>
             <name-node>${nameNode}</name-node>
@@ -103,12 +103,13 @@
 			</configuration>
             <master>yarn</master>
             <mode>cluster</mode>
-            <name>EmailResult2Hbase(result_gb_systm_email_fact)</name> 
-            <class>com.glbg.ai.recommend_gb.EmailResult2Hbase</class> 
-            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/result_gb_systm_email_fact/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
-            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 3g --driver-memory 2g --driver-cores 2 --num-executors 13 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
-			<arg>apl_result_gb_systm_email_fact</arg>
-			<arg>dw_gearbest_recommend.apl_result_gb_systm_email_fact</arg>
+            <name>CommonSortResult2Hbase(result_rg_system_email_rg_cf)</name> 
+            <class>com.glbg.ai.recommend_gb.CommonSortResult2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_rg_emp_recommend/result_rg_system_email_rg_cf/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 3g --driver-memory 2g --driver-cores 2 --num-executors 100 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+			<arg>apl_result_rg_system_email_rg_cf</arg>
+			<arg>dw_rg_recommend.apl_result_rg_system_email_rg_cf</arg>
+			<arg>0,4</arg>
         </spark> 
         <ok to="end"/>
         <error to="failed_mail"/>
@@ -116,8 +117,8 @@
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
 			<to>dongtengfei@globalegrow.com</to>
-			<subject>result_gb_systm_email_fact-wf failed</subject>
-			<body>result_gb_systm_email_fact-wf daily stat failed!
+			<subject>result_rg_system_email_rg_cf-wf failed</subject>
+			<body>result_rg_system_email_rg_cf-wf daily stat failed!
                   Stat DATE:${timestamp()},
                   Error message:[${wf:errorMessage(wf:lastErrorNode())}].
             </body>

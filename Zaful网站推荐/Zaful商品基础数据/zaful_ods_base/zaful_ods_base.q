@@ -133,6 +133,26 @@ SELECT
 FROM
 	ods.ods_m_zaful_eload_goods_zhtw
     WHERE dt='${DATE}'
+UNION ALL
+SELECT
+	 goods_id,
+	 goods_title,
+	 is_lang_show,
+	 url_title,
+	 'ru' lang
+FROM
+	ods.ods_m_zaful_eload_goods_ru
+    WHERE dt='${DATE}'
+UNION ALL
+SELECT
+	 goods_id,
+	 goods_title,
+	 is_lang_show,
+	 url_title,
+	 'tr' lang
+FROM
+	ods.ods_m_zaful_eload_goods_tr
+    WHERE dt='${DATE}'
 ;
 
 

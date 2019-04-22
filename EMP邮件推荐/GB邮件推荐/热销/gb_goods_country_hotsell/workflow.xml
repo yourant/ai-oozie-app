@@ -141,8 +141,8 @@
 			</configuration>
             <master>yarn</master>
             <mode>cluster</mode>
-            <name>CommonResult2Hbase(apl_gb_goods_country_plat_hotsell)</name> 
-            <class>com.glbg.ai.recommend_gb.CommonResult2Hbase</class> 
+            <name>CommonSortResult2Hbase(apl_gb_goods_country_plat_hotsell)</name> 
+            <class>com.glbg.ai.recommend_gb.CommonSortResult2Hbase</class> 
             <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_goods_country_hotsell/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
             <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 25 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=200 --conf spark.default.parallelism=200</spark-opts> 
 			<arg>apl_gb_goods_country_plat_hotsell</arg>

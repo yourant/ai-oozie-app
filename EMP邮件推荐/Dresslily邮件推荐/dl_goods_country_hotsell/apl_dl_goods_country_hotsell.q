@@ -17,6 +17,35 @@ SET hive.exec.parallel = true;
 set hive.support.concurrency=false;
 
 
+--多语言中间表
+CREATE TABLE IF NOT EXISTS dw_dresslily_recommend.apl_dl_sku_lang_goods(
+	goods_id	int		COMMENT '商品ID',
+	goods_title	string	COMMENT '商品标题',
+	url_title	string	COMMENT	'静态页面文件标题',
+	lang		string  COMMENT	'语言'	  
+);
+
+INSERT OVERWRITE TABLE dw_dresslily_recommend.apl_dl_sku_lang_goods 
+SELECT
+	goods_id,
+	goods_title,
+	url_title_lang as url_title,
+	'fr' lang
+FROM 
+	ods.ods_m_dresslily_eload_goods_fr
+	WHERE dt = '${DATE}'
+UNION  ALL
+SELECT
+	goods_id,
+	goods_title,
+	url_title,
+	'en' lang
+FROM 
+	ods.ods_m_dresslily_eload_goods
+	WHERE dt = '${DATE}'
+;
+
+
 --商品信息
 CREATE TABLE IF NOT EXISTS dw_dresslily_recommend.apl_dresslily_goods_info(
 	goodssn            string     COMMENT '推荐商品SKU',
@@ -35,28 +64,54 @@ STORED AS TEXTFILE;
 
 
 INSERT OVERWRITE TABLE dw_dresslily_recommend.apl_dresslily_goods_info SELECT
-	goods_sn,
-	goods_id,
-	cat_id,
-	goods_title,
-	goods_grid,
-	'en',
-	goods_img,
-	goods_thumb,
-	url_title
-FROM
-	ods.ods_m_dresslily_eload_goods
-WHERE
-	dt = '${DATE}'
-GROUP BY
-	goods_sn,
-	goods_id,
-	cat_id,
-	goods_title,
-	goods_grid,
-	goods_img,
-	goods_thumb,
-	url_title;
+	m.goods_sn,
+	m.goods_id,
+	m.cat_id,
+	m.goods_title,
+	m.goods_grid,
+	m.lang,
+	m.goods_img,
+	m.goods_thumb,
+	m.url_title
+FROM (
+	select
+		a.goods_id,
+		a.goods_title,
+		a.url_title,
+		a.lang,
+		b.goods_sn,
+		b.cat_id,
+		b.goods_grid,
+		b.goods_img,
+		b.goods_thumb
+	from 
+		dw_dresslily_recommend.apl_dl_sku_lang_goods a
+	JOIN(
+		select 
+			goods_sn,
+			goods_id,
+			cat_id,
+			goods_title,
+			goods_grid,
+			goods_img,
+			goods_thumb,
+			url_title
+		from 
+			ods.ods_m_dresslily_eload_goods 
+		WHERE
+			dt = '${DATE}'
+		GROUP BY
+			goods_sn,
+			goods_id,
+			cat_id,
+			goods_title,
+			goods_grid,
+			goods_img,
+			goods_thumb,
+			url_title
+	) b on a.goods_id = b.goods_id
+) m
+;
 
 
 --国家热销

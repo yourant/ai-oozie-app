@@ -88,6 +88,7 @@ FROM
 	ods.ods_m_dresslily_eload_goods
 WHERE
 	dt = '${DATE}'
-AND is_on_sale = 1
+AND is_on_sale = 1 
+AND is_delete = 0
 AND goods_number > 0
 ;

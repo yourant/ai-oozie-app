@@ -1,0 +1,109 @@
+<workflow-app name="result_zf_sku_remove_cate-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="result_zf_sku_remove_cate_tohive" />
+
+    <action name="result_zf_sku_remove_cate_tohive">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mongotohive.MongoToHiveNewMR</main-class>
+            <arg>/user/hive/warehouse/dw_zaful_recommend.db/result_zf_sku_remove_cate/</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>result_zf_sku_remove_cate</arg>
+		</java>
+		<ok to="result_zf_sku_remove_cate_hive" />
+		<error to="failed_mail" />
+	</action>
+
+    <action name="result_zf_sku_remove_cate_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>result_zf_sku_remove_cate.q</script>
+        </hive>
+        <ok to="apl_result_zf_sku_remove_cate_tohbase"/>
+        <error to="failed_mail"/>
+    </action> 
+<action name="apl_result_zf_sku_remove_cate_tohbase">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>EmailResult2Hbase(apl_result_zf_sku_remove_cate)</name> 
+            <class>com.glbg.ai.recommend_gb.CommonSortResult2Hbase</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_zaful_recommend/result_zf_sku_remove_cate/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 100 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+			<arg>apl_result_zf_sku_remove_cate</arg>
+			<arg>dw_zaful_recommend.apl_result_zf_sku_remove_cate</arg>
+			<arg>0,6</arg>
+        </spark> 
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com,dongtengfei@globalegrow.com</to>
+			<subject>result_zf_sku_remove_cate-wf failed</subject>
+			<body>result_zf_sku_remove_cate-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>

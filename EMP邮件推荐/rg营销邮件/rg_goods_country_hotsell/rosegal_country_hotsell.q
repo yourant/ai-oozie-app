@@ -156,6 +156,63 @@ FROM
 WHERE
 	x.spurank <= 50;
 
+--多语言中间表
+CREATE TABLE IF NOT EXISTS dw_rg_recommend.apl_rg_sku_lang_goods(
+	goods_id	int		COMMENT '',
+	goods_title	string	COMMENT '商品标题',
+	url_title	string	COMMENT	'静态页面文件标题',
+	lang		string  COMMENT	'语言'	  
+);
+
+
+INSERT OVERWRITE TABLE dw_rg_recommend.apl_rg_sku_lang_goods 
+SELECT
+	goods_id,
+	goods_title,
+	url_title,
+	'ar' lang
+FROM 
+	ods.ods_m_rosegal_db_eload_goods_ar
+	WHERE dt = '${DATE}'
+UNION  ALL
+SELECT
+	goods_id,
+	goods_title,
+	url_title,
+	'es' lang
+FROM 
+	ods.ods_m_rosegal_db_eload_goods_es
+	WHERE dt = '${DATE}'
+UNION  ALL
+SELECT
+	goods_id,
+	goods_title,
+	url_title,
+	'fr' lang
+FROM 
+	ods.ods_m_rosegal_db_eload_goods_fr
+	WHERE dt = '${DATE}'
+UNION  ALL
+SELECT
+	goods_id,
+	goods_title,
+	url_title,
+	'ru' lang
+FROM 
+	ods.ods_m_rosegal_db_eload_goods_ru
+	WHERE dt = '${DATE}'
+UNION  ALL
+SELECT
+	goods_id,
+	goods_title,
+	url_title,
+	'en' lang
+FROM 
+	ods.ods_m_rosegal_eload_goods
+	WHERE dt = '${DATE}'
+;
+
+
 
 
 CREATE TABLE IF NOT EXISTS dw_rg_recommend.apl_rg_goods_country_hotsell(
@@ -185,7 +242,7 @@ SELECT
 	NVL(b.cat_id,0)                ,
 	NVL(b.goods_title,'')           ,
 	NVL(b.goods_grid,'')              ,
-	'en'                ,
+	NVL(b.lang,'')                ,
 	NVL(b.goods_img,'')               ,
 	NVL(b.goods_thumb,'')             ,
 	NVL(b.url_title,'')            
@@ -196,9 +253,28 @@ FROM(
 	FROM
 		dw_rg_recommend.rg_goods_country_hotsell
 	) a
-JOIN
-	ods.ods_m_rosegal_eload_goods b
-ON
+JOIN(
+	select
+		c.goods_id,
+		c.goods_title,
+		c.url_title,
+		c.lang,
+		d.goods_sn,
+		d.cat_id,
+		d.goods_grid,
+		d.goods_img,
+		d.goods_thumb
+	from
+		dw_rg_recommend.apl_rg_sku_lang_goods c
+	JOIN(
+		select 
+			* 
+		from 
+			ods.ods_m_rosegal_eload_goods
+		where
+			dt = '${DATE}' AND is_on_sale = 1
+	) d ON c.goods_id = d.goods_id
+) b ON
 	a.goods_sn = b.goods_sn
 ;
 
@@ -284,10 +360,38 @@ STORED AS TEXTFILE;
 
 
 INSERT OVERWRITE TABLE dw_rg_recommend.apl_rg_goods_sn_2hbase
-select goods_sn,goods_id,cat_id,goods_title,goods_grid,'en',goods_img,goods_thumb,url_title
-from ods.ods_m_rosegal_eload_goods
-where dt='${DATE}'
-group by goods_sn,goods_id,cat_id,goods_title,goods_grid,goods_img,goods_thumb,url_title
+select 
+	m.goods_sn,
+	m.goods_id,
+	m.cat_id,
+	m.goods_title,
+	m.goods_grid,
+	m.lang,
+	m.goods_img,
+	m.goods_thumb,
+	m.url_title
+from (
+	select
+		a.goods_id,
+		a.goods_title,
+		a.url_title,
+		a.lang,
+		b.goods_sn,
+		b.cat_id,
+		b.goods_grid,
+		b.goods_img,
+		b.goods_thumb
+	from 
+		dw_rg_recommend.apl_rg_sku_lang_goods a
+	JOIN(
+		select 
+			goods_sn,goods_id,cat_id,goods_title,goods_grid,goods_img,goods_thumb,url_title
+		from 
+			ods.ods_m_rosegal_eload_goods
+		where dt='${DATE}'
+		group by goods_sn,goods_id,cat_id,goods_title,goods_grid,goods_img,goods_thumb,url_title
+	) b on a.goods_id = b.goods_id
+) m
 ;
 
 CREATE TABLE IF NOT EXISTS dw_rg_recommend.apl_rg_goods_sn_2hbase_good_link(
