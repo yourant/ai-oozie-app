@@ -465,7 +465,7 @@ FROM
 	ods.ods_m_zaful_eload_goods_pipeline_zfat
 WHERE
 	dt = '${DATE}'
-AND is_show = 1
+AND is_show = 1 
 UNION  ALL
 SELECT
 	goods_id,
@@ -725,7 +725,8 @@ CREATE TABLE IF NOT EXISTS tmp.apl_nodetree_zf_fact(
 	node1       string        COMMENT '一级分类',
 	node2       string        COMMENT '二级分类',
 	node3       string        COMMENT '三级分类',
-	node4       string        COMMENT '四级分类'	
+	node4       string        COMMENT '四级分类',
+	dt       	string        COMMENT '更新日期'
 )
 COMMENT '商品等级分类表'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
@@ -741,7 +742,8 @@ SELECT
 	split(d.NODE,',')[0] node1, --一级分类
 	split(d.NODE,',')[1] node2, --二级分类
 	split(d.NODE,',')[2] node3, --三级分类
-	split(d.NODE,',')[3] node4  --四级分类
+	split(d.NODE,',')[3] node4,  --四级分类
+	dt
 FROM 
     ods.ods_m_zaful_eload_category d
 WHERE d.dt='${DATE}'
