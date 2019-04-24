@@ -1,5 +1,5 @@
 <workflow-app name="recommend_detailpage_zaful-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="data_prepare_1" />
+	<start to="add_partition_result_goodsdetail_lr" />
 	<action name="prepare">
 		<shell xmlns="uri:oozie:shell-action:0.2">
 			<job-tracker>${jobTracker}</job-tracker>
@@ -114,7 +114,7 @@
 			<param>DATE=${DATE}</param>
 			
         </hive>
-        <ok to="zf_pc_event_info_detail_exp_to_mongodb"/>
+        <ok to="wait_mongodb"/>
         <error to="failed_mail"/>
     </action>
     
@@ -243,6 +243,12 @@
 		<ok to="wait_mongodb" />
 		<error to="failed_mail" />
 	</action>
+
+	 <!-- <fork name = "fork_1">
+   		<path start="wait_mongodb" />
+   		<path start="wait_mongodb2" />
+   </fork> -->
+
 	<action name="wait_mongodb">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
