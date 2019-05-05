@@ -1,0 +1,75 @@
+<workflow-app name="mark_goods_label-wf" xmlns="uri:oozie:workflow:0.5">
+    <start to="mark_label"/>
+
+
+     <action name="mark_label">
+          <java>
+               <job-tracker>${jobTracker}</job-tracker>
+               <name-node>${nameNode}</name-node>
+               <main-class>org.springframework.boot.loader.JarLauncher</main-class>
+          </java>
+          <ok to="label_sku_to_redis"/>
+          <error to="failed_mail" />
+     </action>
+
+     <action name="label_sku_to_redis">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+			<master>yarn</master>
+			<mode>cluster</mode>
+			<name>NewProductsExposure</name>
+			<class>com.glbg.ai.recommend_gb.NewProductFetcher</class>
+			<jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/goods_label/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
+			<spark-opts>--driver-java-options -XX:MaxPermSize=512m --queue root.ai.online --executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=1 --conf spark.default.parallelism=1 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts>
+			<arg>新品-1,新品-2,新品-3,新品-4</arg>
+			<arg>4500,3000,2000,500</arg>
+			<arg>jdbc:mysql://glbg.cojn00n8zy2d.us-east-1.rds.amazonaws.com:3306/glbg_db</arg>
+			<arg>glbg_M_user</arg>
+            <arg>OIOcBW44jt</arg>
+		</spark>
+		<ok to="end"/>
+        <error to="failed_mail"/>
+     </action>
+
+
+    <action name="failed_mail">
+          <email xmlns="uri:oozie:email-action:0.2">
+               <to>yuhui@globalegrow.com</to>
+               <subject>mark_goods_label-wf failed</subject>
+               <body>mark_goods_label-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+          </email>
+          <ok to="kill" />
+          <error to="kill" />
+       </action>
+     <kill name="kill">
+          <message>Job failed, error
+               message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+       </kill>    
+    <end name="end"/>
+</workflow-app>
