@@ -1,5 +1,5 @@
 <workflow-app name="pc_homepage_waterfall_flow-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="DoneFlagChecker" />
+	<start to="pc_homepage_waterfall_flow_hive" />
 	<action name="DoneFlagChecker">
          <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${jobTracker}</job-tracker>

@@ -294,7 +294,6 @@
 					<name>DATE</name>
 					<value>${DATE}</value>
 				</property>
-
 			</configuration>
 			<script>soa_base.q</script>
 			<param>YEAR=${YEAR}</param>
@@ -593,7 +592,87 @@
 		<ok to="join_3" />
 		<error to="failed_mail" />
 	</action>
-	<join name='join_3' to='succeeded' />
+	<join name='join_3' to='apl_gb_goods_info_tohbase' />
+	
+<action name="apl_gb_goods_info_tohbase">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+
+				<property>
+					<name>oozie.launcher.mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property> 
+					<name>mapred.job.queue.name</name> 
+					<value>${queueName}</value> 
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+
+				<property>
+					<name>mapreduce.job.queuename</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+
+			<main-class>com.globalegrow.hadoop.hiveimporthbasejsonmr.HiveImportHbaseHbaseJsonRunner
+			</main-class>
+			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_info_result_uniqlang</arg>
+			<arg>good_sn,goodsspu,webgoodsn,shopcode,goodsstatus,brandcode,firstuptime,warecode,shopprice,id,levelcnt,level1,level2,level3,level4,goodstitle,imgurl,gridurl,thumburl,thumbextendurl,lang,stockqty,avgrate,reviewcount,favoritecount,pipeline_code,url_title</arg>
+			<arg>0,20,25</arg>
+			<arg>apl_gb_goods_info</arg>
+		</java>
+		<ok to="apl_gb_goods_info_hbase_cleaner" />
+		<error to="failed_mail" />
+	</action>
+	
+	<action name="apl_gb_goods_info_hbase_cleaner">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>OutOfDateHBaseCleaner</name> 
+            <class>com.glbg.ai.recommend_gb.OutOfDateHBaseCleaner</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/recommend_soa_base_gb/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>${STARTTIME}</arg>
+			<arg>apl_gb_goods_info</arg>
+        </spark> 
+        <ok to="succeeded"/>
+        <error to="failed_mail"/>
+    </action>
 	<action name="succeeded">
 		<shell xmlns="uri:oozie:shell-action:0.2">
 			<job-tracker>${jobTracker}</job-tracker>
@@ -659,7 +738,7 @@
 
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
-			<to>bigdata@globalegrow.com
+			<to>xiongjun1@globalegrow.com
 			</to>
 			<subject>recommend_soa_gb failed</subject>
 			<body>recommend_soa_gb failed ;${timestamp()} </body>
