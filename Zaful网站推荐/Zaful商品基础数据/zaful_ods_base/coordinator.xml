@@ -89,6 +89,10 @@
 					<name>ADD_TIME_2</name>
 					<value>${coord:dataOut('date2')}</value>
 				</property>
+				<property>
+                    <name>STARTTIME</name>
+					<value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd HH:mm:ss")}</value>					
+                </property>
 			</configuration>
 		</workflow>
 	</action>
