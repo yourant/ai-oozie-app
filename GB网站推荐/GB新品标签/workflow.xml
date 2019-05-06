@@ -1,4 +1,4 @@
-<workflow-app name="gb_new_product_-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="gb_new_product-wf" xmlns="uri:oozie:workflow:0.5">
 	<start to="DoneFlagChecker" />
 	<action name="DoneFlagChecker">
          <spark xmlns="uri:oozie:spark-action:0.1">
