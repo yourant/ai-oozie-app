@@ -1,0 +1,217 @@
+<workflow-app name="gb_new_product_-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="DoneFlagChecker" />
+	<action name="DoneFlagChecker">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>DoneFlagChecker(gb_recommend_base_data)</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlagChecker</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_recommend_base_data/lib/recommender.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 1g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>${YEAR}${MONTH}${DAY}</arg>
+			<arg>gb_recommend_base_data</arg>
+			<arg>mysql_goods_label_bind</arg>
+        </spark> 
+        <ok to="label_sku_to_hive_spark"/>
+        <error to="failed_mail"/>
+    </action>
+     <action name="label_sku_to_hive_spark">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+			<master>yarn</master>
+			<mode>cluster</mode>
+			<name>NewProductMysql2Hive</name>
+			<class>com.glbg.ai.recommend_gb.NewProductMysql2Hive</class>
+			<jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/gb_new_product/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
+			<spark-opts>--driver-java-options -XX:MaxPermSize=512m --queue root.ai.online --executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=1 --conf spark.default.parallelism=1 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts>
+			<arg>'新品-1','新品-2','新品-3','新品-4'</arg>
+			<arg>jdbc:mysql://glbg.cojn00n8zy2d.us-east-1.rds.amazonaws.com:3306/glbg_db</arg>
+			<arg>glbg_M_user</arg>
+            <arg>OIOcBW44jt</arg>
+		</spark>
+		<ok to="new_product_recommend_hive"/>
+        <error to="failed_mail"/>
+     </action>
+	<action name="new_product_recommend_hive">
+		<hive xmlns="uri:oozie:hive-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+			<configuration>
+				<property>
+					<name>oozie.launcher.mapreduce.map.memory.mb</name>
+					<value>512</value>
+				</property>
+				<property>
+					<name>oozie.launcher.yarn.app.mapreduce.am.resource.mb</name>
+					<value>512</value>
+				</property>
+				<property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+				<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+			<script>new_product_recommend.q</script>
+			<param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			<param>DATE=${DATE}</param>
+		</hive>
+		<ok to="label_sku_hive_to_hbase_spark" />
+		<error to="failed_mail" />
+	</action>
+	<action name="label_sku_hive_to_hbase_spark">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>NewProductHive2Hbase</name> 
+            <class>com.glbg.ai.recommend_gb.NewProductHive2Hbase</class> 
+			<jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/gb_new_product/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 6g --driver-memory 2g --driver-cores 1 --num-executors 4 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
+            <arg>apl_result_gb_new_product,apl_result_gb_new_product_current_cat</arg>
+            <arg>dw_gearbest_recommend.gb_new_product_backup_current_tmp</arg>
+			<arg>新品-1,新品-2,新品-3,新品-4</arg>
+            <arg>4500,3000,2000,500</arg>
+        </spark>  
+		<ok to="label_sku_hbase_cleaner"/>
+        <error to="failed_mail"/>
+     </action>
+	 <action name="label_sku_hbase_cleaner">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>OutOfDateHBaseCleaner</name> 
+            <class>com.glbg.ai.recommend_gb.OutOfDateHBaseCleaner</class> 
+			<jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/gb_new_product/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>${STARTTIME}</arg>
+			<arg>apl_result_gb_new_product,apl_result_gb_new_product_current_cat</arg>
+        </spark> 
+		<ok to="end"/>
+        <error to="failed_mail"/>
+     </action>
+    <action name="failed_mail">
+          <email xmlns="uri:oozie:email-action:0.2">
+               <to>xiongjun1@globalegrow.com</to>
+               <subject>mark_goods_label-wf failed</subject>
+               <body>mark_goods_label-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+          </email>
+          <ok to="kill" />
+          <error to="kill" />
+       </action>
+     <kill name="kill">
+          <message>Job failed, error
+               message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+       </kill>    
+    <end name="end"/>
+</workflow-app>

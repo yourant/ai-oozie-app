@@ -209,7 +209,7 @@
 			<arg>0,20,25</arg>
 			<arg>apl_goods_info_result_rec_gb_fact</arg>
 		</java>
-		<ok to="apl_gb_goods_info_tohbase" />
+		<ok to="succeeded" />
 		<error to="failed_mail" />
 	</action>
 <action name="apl_gb_goods_info_tohbase">
