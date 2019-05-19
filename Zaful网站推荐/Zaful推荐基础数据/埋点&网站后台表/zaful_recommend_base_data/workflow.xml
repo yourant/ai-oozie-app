@@ -137,51 +137,9 @@
             <arg>etl_date</arg>
             <arg>none</arg>
 		</java>
-		<ok to="apl_zaful_goods_info_tohbase" />
+		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />
 	</action>
-
-
-<action name="apl_zaful_goods_info_tohbase">
-         <spark xmlns="uri:oozie:spark-action:0.1">
-            <job-tracker>${jobTracker}</job-tracker>
-            <name-node>${nameNode}</name-node>
-            <configuration>
-	              <property>
-	                <name>jobTracker</name>
-	                <value>${jobTracker}</value>
-	              </property>
-	              <property>
-	                <name>nameNode</name>
-	                <value>${nameNode}</value>
-	              </property>
-				  <property>
-                    <name>mapred.job.queue.name</name>
-                    <value>${queueName}</value>
-                  </property>
-				  <property>
-				    <name>oozie.use.system.libpath</name>
-				    <value>true</value>
-				  </property>
-            	<property>
-					<name>DATE</name>
-					<value>${DATE}</value>
-				</property>
-			</configuration>
-            <master>yarn</master>
-            <mode>cluster</mode>
-            <name>HBaseRunner(apl_zaful_goods_info)</name> 
-            <class>com.glbg.ai.recommend_gb.CommonResult2Hbase</class> 
-            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_zaful_recommend/zaful_recommend_base_data/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
-            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 10 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=200 --conf spark.default.parallelism=200 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
-            <arg>apl_zaful_goods_info</arg>
-            <arg>dw_zaful_recommend.apl_zaful_result_attr_fact</arg>
-            <arg>0,10</arg>
-        </spark>  
-        <ok to="doneflag_toredis"/>
-        <error to="failed_mail"/>
-    </action>
-
 		
 <action name="doneflag_toredis">
          <spark xmlns="uri:oozie:spark-action:0.1">
