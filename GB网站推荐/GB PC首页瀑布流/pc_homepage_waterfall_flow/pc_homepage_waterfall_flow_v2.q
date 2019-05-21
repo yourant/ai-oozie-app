@@ -402,19 +402,26 @@ ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'
 LINES TERMINATED BY '\n' 
 STORED AS TEXTFILE;
 
---同时满足以上两个条件的商品集
+--同时满足以上两个条件的商品集，选1000个
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_res_recall SELECT
-	t.good_sn,
-	t.pipeline_code,
-	ROW_NUMBER () OVER (
-		PARTITION BY t.pipeline_code
-		ORDER BY
-			t.score DESC
-	)
+	m.good_sn,
+	m.pipeline_code,
+	m.flag 
 FROM
-	dw_gearbest_recommend.goods_rec_rank_all t
-WHERE
-	(t.goods_num7_avg > 1 or t.pay_amount7_avg > 20) AND t.profit > 0.1
+	(SELECT 
+		t.good_sn,
+		t.pipeline_code,
+		ROW_NUMBER () OVER (
+			PARTITION BY t.pipeline_code
+			ORDER BY
+				t.score DESC
+		) as flag
+	FROM
+		dw_gearbest_recommend.goods_rec_rank_all t
+	WHERE
+		(t.goods_num7_avg > 1 or t.pay_amount7_avg > 20) AND t.profit > 0.1 
+	) m
+WHERE m.flag < 1001
 ;
 
 --未入选商品集
@@ -429,19 +436,25 @@ LINES TERMINATED BY '\n'
 STORED AS TEXTFILE;
 
 --未入选商品集，保留1000个作为长尾后补
-INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_res_bak SELECT
-	t.good_sn,
-	t.pipeline_code,
-	ROW_NUMBER () OVER (
-		PARTITION BY t.pipeline_code
-		ORDER BY
-			t.score DESC
-	) + 1000
-FROM
-	dw_gearbest_recommend.goods_rec_rank_all t
-WHERE
-	(t.goods_num7_avg <= 1  AND t.pay_amount7_avg <= 20) or t.profit <= 0.1
-AND t.score <= 2000
+INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_res_bak SELECT 
+	s.good_sn,
+	s.pipeline_code,
+	s.flag
+	FROM(
+		 SELECT
+			t.good_sn,
+			t.pipeline_code,
+			ROW_NUMBER () OVER (
+				PARTITION BY t.pipeline_code
+				ORDER BY
+					t.score DESC
+			) AS flag
+		FROM
+			dw_gearbest_recommend.goods_rec_rank_all t
+		WHERE
+			(t.goods_num7_avg <= 1  AND t.pay_amount7_avg <= 20) or t.profit <= 0.1
+	) s
+WHERE s.flag <= 1000
 ;
 
 
@@ -460,7 +473,7 @@ STORED AS TEXTFILE;
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_pipeline_bak SELECT
 	m.good_sn,
 	m.pipeline_code,
-	2000      
+	flag      
 FROM
 	(
 		SELECT
@@ -539,95 +552,63 @@ SELECT
 --最终结果汇总，过滤同款spu，按国家站打散，召回商品排在前面，后补商品排序分+1000排在后面.
 --随机打散影响了之前的线性排序，APP 瀑布流和PC 瀑布流都有这样的问题，可视业务需求取消打散逻辑
 --由于读取redis采用ZRANGEBYSCORE pc_homepage_waterfall_flow_0_GBPL_pl_1,分数重排保持连续
+--最终每个国家站取1000个
 INSERT OVERWRITE TABLE dw_gearbest_recommend.pc_homepage_waterfall_flow SELECT
-	r.tab_id,
-	r.good_sn,
-	r.pipeline_code,
-	r.goods_web_sku,
-	r.good_title,
-	r.id,
-	r.lang,
-	r.v_wh_code,
-	r.total_num,
-	r.avg_score,
-	r.shop_price,
-	r.total_favorite,
-	r.stock_qty,
-	r.originalurl,
-	r.img_url,
-	r.grid_url,
-	r.thumb_url,
-	r.thumb_extend_url,
-	r.url_title,
-	r.platform,
-	ROW_NUMBER () OVER (
-		PARTITION BY r.pipeline_code,
-		r.lang
-	ORDER BY
-		r.score ASC
-	) AS score
-FROM
-	(
-		SELECT
-			0 AS tab_id,
-			x.good_sn,
-			x.pipeline_code,
-			x.goods_web_sku,
-			x.good_title,
-			x.id,
-			x.lang,
-			x.v_wh_code,
-			x.total_num,
-			x.avg_score,
-			x.shop_price,
-			x.total_favorite,
-			x.stock_qty,
-			p.originalurl,
-			x.img_url,
-			x.grid_url,
-			x.thumb_url,
-			x.thumb_extend_url,
-			x.url_title,
-			1 AS platform,
-			x.score
-		FROM
-			(
-				SELECT
-					m1.good_sn,
-					m1.pipeline_code,
-					n1.goods_web_sku,
-					n1.good_title,
-					n1.id,
-					n1.lang,
-					n1.v_wh_code,
-					n1.total_num,
-					n1.avg_score,
-					n1.shop_price,
-					n1.total_favorite,
-					n1.stock_qty,
-					n1.img_url,
-					n1.grid_url,
-					n1.thumb_url,
-					n1.thumb_extend_url,
-					n1.url_title,
-					ROW_NUMBER () OVER (
-						PARTITION BY n1.pipeline_code,
-						n1.lang
-					ORDER BY
-						rand()
-					) AS score,
-					ROW_NUMBER () OVER (
-						PARTITION BY n1.pipeline_code,
-						n1.lang,
-						n1.goods_spu
-					ORDER BY
-						n1.shop_price ASC
-					) AS flag
-				FROM
-					dw_gearbest_recommend.goods_res_recall m1
-				JOIN dw_gearbest_recommend.goods_info_result_uniqlang n1 ON m1.good_sn = n1.good_sn
-				AND m1.pipeline_code = n1.pipeline_code
-				UNION ALL
+* 
+FROM(
+	SELECT
+		r.tab_id,
+		r.good_sn,
+		r.pipeline_code,
+		r.goods_web_sku,
+		r.good_title,
+		r.id,
+		r.lang,
+		r.v_wh_code,
+		r.total_num,
+		r.avg_score,
+		r.shop_price,
+		r.total_favorite,
+		r.stock_qty,
+		r.originalurl,
+		r.img_url,
+		r.grid_url,
+		r.thumb_url,
+		r.thumb_extend_url,
+		r.url_title,
+		r.platform,
+		ROW_NUMBER () OVER (
+			PARTITION BY r.pipeline_code,
+			r.lang
+		ORDER BY
+			r.score ASC
+		) AS flag
+	FROM
+		(
+			SELECT
+				0 AS tab_id,
+				x.good_sn,
+				x.pipeline_code,
+				x.goods_web_sku,
+				x.good_title,
+				x.id,
+				x.lang,
+				x.v_wh_code,
+				x.total_num,
+				x.avg_score,
+				x.shop_price,
+				x.total_favorite,
+				x.stock_qty,
+				p.originalurl,
+				x.img_url,
+				x.grid_url,
+				x.thumb_url,
+				x.thumb_extend_url,
+				x.url_title,
+				1 AS platform,
+				x.score
+			FROM
+				(
 					SELECT
 						m1.good_sn,
 						m1.pipeline_code,
@@ -646,7 +627,7 @@ FROM
 						n1.thumb_url,
 						n1.thumb_extend_url,
 						n1.url_title,
-						1000 + ROW_NUMBER () OVER (
+						ROW_NUMBER () OVER (
 							PARTITION BY n1.pipeline_code,
 							n1.lang
 						ORDER BY
@@ -660,47 +641,86 @@ FROM
 							n1.shop_price ASC
 						) AS flag
 					FROM
-						dw_gearbest_recommend.goods_res_bak m1
+						dw_gearbest_recommend.goods_res_recall m1
 					JOIN dw_gearbest_recommend.goods_info_result_uniqlang n1 ON m1.good_sn = n1.good_sn
 					AND m1.pipeline_code = n1.pipeline_code
-				UNION ALL
-					SELECT
-						m1.good_sn,
-						m1.pipeline_code,
-						n1.goods_web_sku,
-						n1.good_title,
-						n1.id,
-						n1.lang,
-						n1.v_wh_code,
-						n1.total_num,
-						n1.avg_score,
-						n1.shop_price,
-						n1.total_favorite,
-						n1.stock_qty,
-						n1.img_url,
-						n1.grid_url,
-						n1.thumb_url,
-						n1.thumb_extend_url,
-						n1.url_title,
-						2000 + ROW_NUMBER () OVER (
-							PARTITION BY n1.pipeline_code,
-							n1.lang
-						ORDER BY
-							rand()
-						) AS score,
-						ROW_NUMBER () OVER (
-							PARTITION BY n1.pipeline_code,
+					UNION ALL
+						SELECT
+							m1.good_sn,
+							m1.pipeline_code,
+							n1.goods_web_sku,
+							n1.good_title,
+							n1.id,
 							n1.lang,
-							n1.goods_spu
-						ORDER BY
-							n1.shop_price ASC
-						) AS flag
-					FROM
-						dw_gearbest_recommend.goods_pipeline_bak m1
-					JOIN dw_gearbest_recommend.goods_info_result_uniqlang n1 ON m1.good_sn = n1.good_sn
-					AND m1.pipeline_code = n1.pipeline_code
-			) x
-		JOIN dw_gearbest_recommend.goods_originalurl p ON x.good_sn = p.good_sn
-		WHERE
-			x.flag = 1
-	) r;
+							n1.v_wh_code,
+							n1.total_num,
+							n1.avg_score,
+							n1.shop_price,
+							n1.total_favorite,
+							n1.stock_qty,
+							n1.img_url,
+							n1.grid_url,
+							n1.thumb_url,
+							n1.thumb_extend_url,
+							n1.url_title,
+							1000 + ROW_NUMBER () OVER (
+								PARTITION BY n1.pipeline_code,
+								n1.lang
+							ORDER BY
+								rand()
+							) AS score,
+							ROW_NUMBER () OVER (
+								PARTITION BY n1.pipeline_code,
+								n1.lang,
+								n1.goods_spu
+							ORDER BY
+								n1.shop_price ASC
+							) AS flag
+						FROM
+							dw_gearbest_recommend.goods_res_bak m1
+						JOIN dw_gearbest_recommend.goods_info_result_uniqlang n1 ON m1.good_sn = n1.good_sn
+						AND m1.pipeline_code = n1.pipeline_code
+					UNION ALL
+						SELECT
+							m1.good_sn,
+							m1.pipeline_code,
+							n1.goods_web_sku,
+							n1.good_title,
+							n1.id,
+							n1.lang,
+							n1.v_wh_code,
+							n1.total_num,
+							n1.avg_score,
+							n1.shop_price,
+							n1.total_favorite,
+							n1.stock_qty,
+							n1.img_url,
+							n1.grid_url,
+							n1.thumb_url,
+							n1.thumb_extend_url,
+							n1.url_title,
+							2000 + ROW_NUMBER () OVER (
+								PARTITION BY n1.pipeline_code,
+								n1.lang
+							ORDER BY
+								rand()
+							) AS score,
+							ROW_NUMBER () OVER (
+								PARTITION BY n1.pipeline_code,
+								n1.lang,
+								n1.goods_spu
+							ORDER BY
+								n1.shop_price ASC
+							) AS flag
+						FROM
+							dw_gearbest_recommend.goods_pipeline_bak m1
+						JOIN dw_gearbest_recommend.goods_info_result_uniqlang n1 ON m1.good_sn = n1.good_sn
+						AND m1.pipeline_code = n1.pipeline_code
+				) x
+			JOIN dw_gearbest_recommend.goods_originalurl p ON x.good_sn = p.good_sn
+			WHERE
+				x.flag = 1
+		) r
+	) m
+	WHERE m.flag < 1001;
+
