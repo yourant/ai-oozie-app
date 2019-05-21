@@ -1,4 +1,8 @@
 新品标签依赖于新品打标任务（临时任务->打标）
 
-create 'apl_result_gb_new_product_current_cat', 'cf', {COMPRESSION => 'SNAPPY'}
- alter "apl_result_gb_new_product_current_cat",NAME=>'cf',TTL=>'604800' 
+create 'apl_gb_result_detail_page_1_abtest1_fact_new', 'cf', {NUMREGIONS => 100, SPLITALGO => 'HexStringSplit'}
+
+
+ alter "apl_gb_result_detail_page_1_abtest1_fact_new",NAME=>'cf',TTL => '604800'
+
+ alter "apl_zaful_goods_info_new",NAME=>'cf',IN_MEMORY =>'true' 
