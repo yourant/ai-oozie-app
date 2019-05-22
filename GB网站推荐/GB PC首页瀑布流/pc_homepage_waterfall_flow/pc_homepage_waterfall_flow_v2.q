@@ -259,6 +259,7 @@ CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_order_7_tmp (
     order_num7          double   COMMENT '近七天下单量',
     pay_amount7         double  COMMENT '近七天销售额',
     goods_num7_avg         double  COMMENT '近七天日均销量',
+    order_num7_avg         double  COMMENT '近七天日订单量',
     pay_amount7_avg         double  COMMENT '近七天日均销售额',
     goods_num7_atOne         double  COMMENT '近七天归一化日均销量',
     pay_amount7_atOne         double  COMMENT '近七天归一化日均销售额'
@@ -275,6 +276,7 @@ INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_order_7_tmp SELECT
 	SUM(order_num) AS order_num7,
 	SUM(pay_amount) AS pay_amount7,
 	sum(goods_num) / 7 AS goods_num7_avg,
+	sum(order_num) / 7 AS order_num7_avg,
     SUM(pay_amount) / 7 AS pay_amount7_avg,
 	0,
 	0
@@ -293,6 +295,7 @@ GROUP BY
 	a.order_num7,
 	a.pay_amount7,
 	a.goods_num7_avg,
+	a.order_num7_avg,
 	a.pay_amount7_avg,
 	(a.goods_num7_avg - min(a.goods_num7_avg) OVER(partition by a.pipeline_code)) /(max(a.goods_num7_avg) OVER(partition by a.pipeline_code)-min(a.goods_num7_avg) OVER(partition by a.pipeline_code)),
 	(a.pay_amount7_avg - min(a.pay_amount7_avg) OVER(partition by a.pipeline_code))/(max(a.pay_amount7_avg) OVER(partition by a.pipeline_code)-min(a.pay_amount7_avg) OVER(partition by a.pipeline_code))
@@ -313,6 +316,7 @@ CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_rec_rank_all (
     goods_num7_atOne         double  COMMENT '近七天归一化日均销量',
     pay_amount7_atOne         double  COMMENT '近七天归一化日均销售额',
     goods_num7_avg         double  COMMENT '近七天日均销量',
+    order_num7_avg         double  COMMENT '近七天日均订单量',
     pay_amount7_avg         double  COMMENT '近七天日均销售额',
     profit         double  COMMENT '近七天日均毛利率',
     score             double      COMMENT '分数',
@@ -334,6 +338,7 @@ SELECT
 	x.goods_num7_atOne,
 	x.pay_amount7_atOne,
 	x.goods_num7_avg,
+	x.order_num7_avg,
 	x.pay_amount7_avg,
 	x.profit,
 	x.score,
@@ -347,19 +352,20 @@ FROM
 		SELECT
 			n.good_sn,
 			n.pipeline_code,
-            (NVL(m.goods_num,0) - n.goods_num7_avg) / n.goods_num7_avg AS trending,
+            (NVL(m.order_num,0) - n.order_num7_avg) / n.order_num7_avg AS trending,
             n.order_num7 / t.exp_num7 AS conversion,
 			n.goods_num7_atOne,
 			n.pay_amount7_atOne,
 			n.goods_num7_avg,
+			n.order_num7_avg,
 			n.pay_amount7_avg,
 			NVL(h.profit,0.0) AS profit,
-			0.2 * (
-				(NVL(m.goods_num,0) - n.goods_num7_avg) / n.goods_num7_avg
+			0.4 * (
+				(NVL(m.order_num,0) - n.order_num7_avg) / n.order_num7_avg
 			) 
 			+ 0.3 * (n.order_num7 / t.exp_num7) 
-			+ 0.2 * n.goods_num7_atOne
-			+ 0.2 * n.pay_amount7_atOne 
+			+ 0.1 * n.goods_num7_atOne
+			+ 0.1 * n.pay_amount7_atOne 
 			+ 0.1 * NVL(h.profit,0.0) AS score
 		FROM
 			dw_gearbest_recommend.goods_order_7_tmp n
@@ -367,7 +373,7 @@ FROM
 			SELECT
 				good_sn,
 				pipeline_code,
-				goods_num
+				order_num
 			FROM
 				dw_gearbest_recommend.goods_order_his
 			WHERE
@@ -419,7 +425,7 @@ FROM
 	FROM
 		dw_gearbest_recommend.goods_rec_rank_all t
 	WHERE
-		(t.goods_num7_avg > 1 or t.pay_amount7_avg > 20) AND t.profit > 0.1 
+		t.order_num7_avg > 1 AND t.pay_amount7_avg > 20 AND t.profit > 0.1 
 	) m
 WHERE m.flag < 1001
 ;
@@ -452,7 +458,7 @@ INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_res_bak SELECT
 		FROM
 			dw_gearbest_recommend.goods_rec_rank_all t
 		WHERE
-			(t.goods_num7_avg <= 1  AND t.pay_amount7_avg <= 20) or t.profit <= 0.1
+			t.order_num7_avg <= 1  OR t.pay_amount7_avg <= 20 OR t.profit <= 0.1
 	) s
 WHERE s.flag <= 1000
 ;
