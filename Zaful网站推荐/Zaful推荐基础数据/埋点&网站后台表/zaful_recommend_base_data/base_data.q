@@ -85,13 +85,35 @@ JOIN (
 --过滤上下架无库存
 INSERT overwrite TABLE dw_zaful_recommend.email_emp_zaful_onsale
 SELECT
-	goods_sn,
-	cat_id
-FROM
-	ods.ods_m_zaful_eload_goods
-WHERE
-	dt = '${DATE}'
-AND is_on_sale = 1
-AND is_delete = 0
-AND goods_number > 0
-;
+    goods_sn,
+    cat_id,
+    catelist,
+    node1,
+    node2,
+    node3,
+    node4
+FROM (
+    SELECT 
+        a.goods_sn,
+        a.cat_id,
+        CONCAT_WS('\\;',b.node1,b.node2,b.node3) as catelist,
+        b.node1,
+        b.node2,
+        b.node3,
+        b.node4
+    FROM (
+        SELECT 
+            goods_sn,
+            cat_id 
+        FROM 
+            ods.ods_m_zaful_eload_goods 
+        WHERE
+    	    dt = '${DATE}' 
+    	AND is_on_sale = 1
+        AND is_delete = 0
+        AND goods_number > 0
+        ) a 
+    join 
+        tmp.apl_nodetree_zf_fact b 
+    on
+        a.cat_id = b.cat_id) temp;
