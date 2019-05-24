@@ -477,6 +477,17 @@ FROM
 WHERE
 	dt = '${DATE}'
 AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'zfhk' AS pipelinecode,
+	'zh-tw' AS lang
+FROM
+	ods.ods_m_zaful_zaful_db_eload_goods_pipeline_zfhk 
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
 ;
 
 
@@ -748,6 +759,7 @@ FROM
     ods.ods_m_zaful_eload_category d
 WHERE d.dt='${DATE}'
 ;
+
 
 
 CREATE TABLE IF NOT EXISTS tmp.apl_sku_addtime_zf_fact( 

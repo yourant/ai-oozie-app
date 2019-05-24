@@ -1,4 +1,4 @@
-<workflow-app name="zaful_ods_base-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="zaful_ods_base-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
 	<start to="zaful_ods_base" />
      <action name="zaful_ods_base">
         <hive xmlns="uri:oozie:hive-action:0.2">
