@@ -1,6 +1,28 @@
 <workflow-app name="recommend_soa_detail_page_sponsored-wf" xmlns="uri:oozie:workflow:0.5">
-	<start to="DoneFlagChecker" />	
-	<action name="DoneFlagChecker">
+	<start to="recommend_soa_detail_page_sponsored_hive" />	
+    <action name="recommend_soa_detail_page_sponsored_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>apl_result_detail_page_sponsored_fact.q</script>
+						<param>ADD_TIME=${ADD_TIME}</param>
+        </hive>
+        <ok to="doneflag_toredis"/>
+        <error to="failed_mail"/>
+    </action> 
+	
+	<action name="doneflag_toredis">
          <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${jobTracker}</job-tracker>
             <name-node>${nameNode}</name-node>
@@ -24,41 +46,19 @@
 			</configuration>
             <master>yarn</master>
             <mode>cluster</mode>
-            <name>DoneFlagChecker(gb_recommend_base_data)</name> 
-            <class>com.glbg.ai.recommend_gb.DoneFlagChecker</class> 
+            <name>DoneFlag2Redis(apl_result_detail_page_sponsored_fact)</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlag2Redis</class> 
             <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_recommend_base_data/lib/recommender.jar</jar> 
-            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
 			<arg>${YEAR}${MONTH}${DAY}</arg>
 			<arg>gb_recommend_base_data</arg>
-			<arg>goods_info_result_uniqlang</arg>
+			<arg>apl_result_detail_page_sponsored_fact</arg>
         </spark> 
-        <ok to="recommend_soa_detail_page_sponsored_hive"/>
-        <error to="failed_mail"/>
-    </action>
-	   
-    <action name="recommend_soa_detail_page_sponsored_hive">
-        <hive xmlns="uri:oozie:hive-action:0.2">
-            <job-tracker>${jobTracker}</job-tracker>
-            <name-node>${nameNode}</name-node>
-            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
-            <configuration>
-                <property>
-					<name>oozie.use.system.libpath</name>
-					<value>true</value>
-				</property>
-				<property>
-                   <name>mapred.job.queue.name</name>
-                   <value>${queueName}</value>
-                </property>
-            </configuration>
-            <script>apl_result_detail_page_sponsored_fact.q</script>
-						<param>ADD_TIME=${ADD_TIME}</param>
-        </hive>
         <ok to="recommend_soa_detail_page_sponsored_redis"/>
         <error to="failed_mail"/>
-    </action> 
+    </action>
 
-<action name="recommend_soa_detail_page_sponsored_redis">
+	<action name="recommend_soa_detail_page_sponsored_redis">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
 			<name-node>${nameNode}</name-node>
@@ -88,13 +88,49 @@
             <arg>apl_result_detail_page_sponsored_fact</arg>
             <arg>pipeline_code#lang#categoryid</arg>
 		</java>
-		<ok to="end" />
+		<ok to="apl_result_detail_page_sponsored_fact_redis_cleaner" />
 		<error to="failed_mail" />
 	</action>
+	
+	<action name="apl_result_detail_page_sponsored_fact_redis_cleaner">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>OutOfDateRedisCleaner</name> 
+            <class>com.glbg.ai.recommend_gb.OutOfDateRedisCleaner</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/recommend_soa_detail_page_sponsored/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 2 --executor-cores 2 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>${STARTTIME}</arg>
+			<arg>604800</arg>
+			<arg>apl_result_detail_page_sponsored_fact*</arg>
+        </spark> 
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
 
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
-			<to>zhanrui@globalegrow.com</to>
+			<to>xiongjun1@globalegrow.com</to>
 			<subject>recommend_gb_backup-wf failed</subject>
 			<body>recommend_gb_backup-wf daily stat failed!
                   Stat DATE:${timestamp()},
