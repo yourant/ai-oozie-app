@@ -1,4 +1,4 @@
-<workflow-app name="recommend_gb_detail_abtest1-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="recommend_gb_detail_abtest1-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
 	<start to="add_partition_result_emp_data" />
 	<action name="add_partition_result_emp_data">
         <hive xmlns="uri:oozie:hive-action:0.2">
