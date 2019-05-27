@@ -1,4 +1,4 @@
-<workflow-app name="gb_new_product-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="gb_new_product-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
 	<start to="DoneFlagChecker" />
 	<action name="DoneFlagChecker">
          <spark xmlns="uri:oozie:spark-action:0.1">
@@ -155,8 +155,8 @@
             <class>com.glbg.ai.recommend_gb.NewProductHive2Hbase</class> 
 			<jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/gb_new_product/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
             <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 6g --driver-memory 4g --driver-cores 1 --num-executors 4 --executor-cores 1 --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=2000 --conf spark.default.parallelism=2000 --conf spark.yarn.executor.memoryOverhead=1024</spark-opts> 
-            <arg>apl_result_gb_new_product,apl_result_gb_new_product_current_cat</arg>
-            <arg>dw_gearbest_recommend.gb_new_product_backup_current_tmp</arg>
+            <arg>apl_result_gb_new_product,apl_result_gb_new_product_current_cat,apl_result_gb_new_product_parent_cat</arg>
+            <arg>dw_gearbest_recommend.gb_new_product_backup_current_tmp,dw_gearbest_recommend.gb_new_product_backup_parent_tmp</arg>
 			<arg>新品-1,新品-2,新品-3,新品-4</arg>
             <arg>4500,3000,2000,500</arg>
         </spark>  
@@ -192,7 +192,7 @@
 			<jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/gb_new_product/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
             <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
 			<arg>${STARTTIME}</arg>
-			<arg>apl_result_gb_new_product,apl_result_gb_new_product_current_cat</arg>
+			<arg>apl_result_gb_new_product,apl_result_gb_new_product_current_cat,apl_result_gb_new_product_parent_cat</arg>
         </spark> 
 		<ok to="end"/>
         <error to="failed_mail"/>
