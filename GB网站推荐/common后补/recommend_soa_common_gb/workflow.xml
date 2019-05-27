@@ -212,50 +212,6 @@
 		<ok to="succeeded" />
 		<error to="failed_mail" />
 	</action>
-<action name="apl_gb_goods_info_tohbase">
-		<java>
-			<job-tracker>${jobTracker}</job-tracker>
-			<name-node>${nameNode}</name-node>
-
-			<configuration>
-
-				<property>
-					<name>oozie.launcher.mapred.job.queue.name</name>
-					<value>${queueName}</value>
-				</property>
-				<property> 
-					<name>mapred.job.queue.name</name> 
-					<value>${queueName}</value> 
-				</property>
-				<property>
-					<name>YEAR</name>
-					<value>${YEAR}</value>
-				</property>
-				<property>
-					<name>MONTH</name>
-					<value>${MONTH}</value>
-				</property>
-				<property>
-					<name>DAY</name>
-					<value>${DAY}</value>
-				</property>
-
-				<property>
-					<name>mapreduce.job.queuename</name>
-					<value>${queueName}</value>
-				</property>
-			</configuration>
-
-			<main-class>com.globalegrow.hadoop.hiveimporthbasejsonmr.HiveImportHbaseHbaseJsonRunner
-			</main-class>
-			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_info_result_uniqlang</arg>
-			<arg>good_sn,goodsspu,webgoodsn,shopcode,goodsstatus,brandcode,firstuptime,warecode,shopprice,id,levelcnt,level1,level2,level3,level4,goodstitle,imgurl,gridurl,thumburl,thumbextendurl,lang,stockqty,avgrate,reviewcount,favoritecount,pipeline_code,url_title</arg>
-			<arg>0,20,25</arg>
-			<arg>apl_gb_goods_info</arg>
-		</java>
-		<ok to="succeeded" />
-		<error to="failed_mail" />
-	</action>
 	<action name="succeeded">
 		<shell xmlns="uri:oozie:shell-action:0.2">
 			<job-tracker>${jobTracker}</job-tracker>
