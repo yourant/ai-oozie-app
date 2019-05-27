@@ -101,7 +101,8 @@ FROM(
 	ON
 		t1.good_sn = t5.good_sn
 	LEFT JOIN
-		goods_category_level t4
+		--goods_category_level t4
+		(select id, level_cnt,level_1,level_2,level_3,level_4 from ods.ods_o_gearbest_bigdata_goods_category_level where day='${DATE}') t4
 	ON
 		t5.category_id = t4.id
        JOIN
@@ -701,7 +702,8 @@ SELECT
     level_4,
     level_cnt
 FROM
-   goods_category_level;	
+   ods.ods_o_gearbest_bigdata_goods_category_level 
+WHERE day='${DATE}';	
 
 	
 INSERT OVERWRITE TABLE apl_sku_second_catgory_fact
