@@ -81,6 +81,10 @@
 					<name>DAY2WEEK</name>
 					<value>${coord:dataOut('day2week')}</value>
 				</property>
+				<property>
+                    <name>STARTTIME</name>
+					<value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd HH:mm:ss")}</value>					
+                </property>
 			</configuration>
 		</workflow>
 	</action>
