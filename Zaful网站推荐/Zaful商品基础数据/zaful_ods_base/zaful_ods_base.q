@@ -481,7 +481,7 @@ UNION  ALL
 SELECT
 	goods_id,
 	shop_price,
-	'zfhk' AS pipelinecode,
+	'ZFHK' AS pipelinecode,
 	'zh-tw' AS lang
 FROM
 	ods.ods_m_zaful_zaful_db_eload_goods_pipeline_zfhk 
