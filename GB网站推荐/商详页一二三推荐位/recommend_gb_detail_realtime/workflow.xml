@@ -1,4 +1,4 @@
-<workflow-app name="recommend_gb_detail_realtime-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="recommend_gb_detail_realtime-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
 	<start to="wait_fork" />
 	<fork name = "wait_fork">
    		<path start="check_mongodb_gb_result_detail_2_page_gtq_abtest_v1" />

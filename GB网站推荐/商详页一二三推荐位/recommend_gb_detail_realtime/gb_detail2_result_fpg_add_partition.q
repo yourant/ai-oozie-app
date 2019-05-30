@@ -2,7 +2,7 @@
 --@date 2019年5月29日 
 --@desc  推荐结果表建分区
 
-SET mapred.job.name='gb_detail2_result_fpg_add_partition.1';
+SET mapred.job.name='gb_detail2_result_fpg_add_partition';
 
 USE dw_gearbest_recommend;
 
