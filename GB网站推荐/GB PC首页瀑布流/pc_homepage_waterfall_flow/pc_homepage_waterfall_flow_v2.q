@@ -34,7 +34,7 @@ FROM
 	dw_gearbest_recommend.goods_info_mid1
 WHERE
 	(
-		level_3 IN (11372, 11380, 12056)
+		level_3 IN (11372, 11380, 12056,11400,11401,12910,11334)
 	)
 OR (
 	level_2 IN (
