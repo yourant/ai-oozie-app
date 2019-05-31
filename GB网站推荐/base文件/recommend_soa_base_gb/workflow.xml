@@ -15,9 +15,60 @@
 			<argument>${TODAY}</argument>
 			<file>${wf_application_path}/${PREPARE_EXEC}</file>
 		</shell>
-		<ok to="soa_base" />
+		<ok to="pipeline_language_import" />
 		<error to="failed_mail" />
 	</action>	
+	<action name="pipeline_language_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>pipeline_language</arg>
+            <arg>--columns</arg>
+            <arg>id,pipeline_code,platform,status,lang,create_time,update_time,order,is_backup_default</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/pipeline_language</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>1</arg>
+        </sqoop>
+        <ok to="soa_base"/>
+        <error to="failed_mail"/>
+    </action>
 	<action name="soa_base">
 		<hive xmlns="uri:oozie:hive-action:0.2">
 			<job-tracker>${jobTracker}</job-tracker>

@@ -637,6 +637,28 @@ FROM
 WHERE
 	m.flag = 1;
 
+ --pipeline_language_map更新
+INSERT OVERWRITE TABLE dw_gearbest_recommend.pipeline_language_map  SELECT
+	pipeline_code,
+	CASE
+WHEN lang = 'en-gb' THEN
+	'en'
+WHEN lang = 'en-us' THEN
+	'en'
+WHEN lang = 'en-cbd' THEN
+	'en'
+ELSE
+	lang
+END AS lang
+FROM
+	dw_gearbest_recommend.pipeline_language
+WHERE
+	STATUS = '1'
+GROUP BY
+	pipeline_code,
+	lang
+	;
+
  --商品池表更新，取pipeline_code对应的lang数据，其他多语言丢弃
  INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_uniqlang SELECT
 	n.good_sn,
@@ -693,6 +715,7 @@ WHERE
 			) x
 	)
 ;
+
 INSERT OVERWRITE TABLE apl_nodetree_gb_fact
 SELECT
     id,
