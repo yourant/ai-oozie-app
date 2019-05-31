@@ -52,7 +52,16 @@ SELECT
 	create_time,
 	update_time,
 	pipeline_code,
-	lang,
+	CASE
+	WHEN lang = 'en-gb' THEN
+		'en'
+	WHEN lang = 'en-us' THEN
+		'en'
+	WHEN lang = 'en-cbd' THEN
+		'en'
+	ELSE
+		lang
+	END AS lang,
 	platform,
 	tab_id,
 	flag1
