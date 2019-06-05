@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="dresslily_recommend_base_data_SNB25641_1"
+<coordinator-app name="dresslily_recommend_base_data"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>

@@ -1,4 +1,4 @@
-<workflow-app name="dresslily_recommend_base_data-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="dresslily_recommend_base_data-wf_SNB25641_1" xmlns="uri:oozie:workflow:0.5">
 	<start to="base_data_hive" />
      <action name="base_data_hive">
         <hive xmlns="uri:oozie:hive-action:0.2">
@@ -134,7 +134,7 @@
             <arg>goods_sn,cat_id</arg>
             <arg>string,string</arg>
             <arg>etl_date</arg>
-            <arg>none</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
 		</java>
 		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />

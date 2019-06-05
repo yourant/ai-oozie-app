@@ -1,4 +1,4 @@
-<workflow-app name="gb_email_daily-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="gb_email_daily-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
 	<start to="gb_review_info_hive" />
 
      <action name="gb_review_info_hive">
@@ -56,7 +56,7 @@
             <arg>goods_sku,user_id,is_favourable_comment,add_time,goods_spu,dt</arg>
             <arg>string,string,string,int,string,string</arg>
             <arg>etl_date</arg>
-            <arg>none</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
 			</java>
 		<ok to="hive_to_mongodb2" />
 		<error to="failed_mail" />
@@ -95,7 +95,7 @@
             <arg>order_sn,goods_sn,user_id,email,country,update_time,behavior</arg>
             <arg>string,string,string,string,string,int,string</arg>
             <arg>etl_date</arg>
-            <arg>none</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
 			</java>
 		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />

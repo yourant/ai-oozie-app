@@ -1,4 +1,4 @@
-<workflow-app name="email_emp_zaful_users-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="email_emp_zaful_users-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
 	<start to="zaful_user_hive" />
      <action name="zaful_user_hive">
         <hive xmlns="uri:oozie:hive-action:0.2">
@@ -56,7 +56,7 @@
             <arg>user_id,country_code</arg>
             <arg>int,string</arg>
             <arg>etl_date</arg>
-            <arg>none</arg>
+			<arg>${YEAR}${MONTH}${DAY}</arg>
 		</java>
 		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />
