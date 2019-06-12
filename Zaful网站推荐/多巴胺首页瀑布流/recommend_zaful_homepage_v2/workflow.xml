@@ -529,7 +529,7 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
-			<arg>http://172.31.27.16:5050/zaful_offline_recommender</arg>
+			<arg>http://aialgo.logsss.com/zaful_offline_recommender</arg>
 			<arg>offline_detail_user_recommend</arg>
 		</java>
 		<ok to="mongodb_to_hive" />
@@ -1001,7 +1001,7 @@
                </property>
 			</configuration>
 			<main-class>com.globalegrow.hadoop.Utils.OfflineRecommendUtil</main-class>
-			<arg>http://172.31.27.16:5050/zaful_offline_recommender</arg>
+			<arg>http://aialgo.logsss.com/zaful_offline_recommender</arg>
 			<arg>offline_detail_user_cookie_recommend</arg>
 		</java>
 		<ok to="mongodb_to_hive2" />
@@ -1153,7 +1153,7 @@
 	</action>
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
-			<to>bigdata@globalegrow.com
+			<to>xiongjun1@globalegrow.com
 			</to>
 			<subject>recommend_homepage_zaful_v2-wf failed</subject>
 			<body>recommend_homepage_zaful_v2-wf failed ;${timestamp()} </body>
