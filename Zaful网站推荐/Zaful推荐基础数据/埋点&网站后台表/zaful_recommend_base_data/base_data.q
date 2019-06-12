@@ -82,6 +82,38 @@ JOIN (
 	AND from_unixtime(addtime + 8 * 3600, 'yyyyMMdd') = '${DATE}'
 ) b ON a.order_id = b.order_id;
 
+
+CREATE TABLE IF NOT EXISTS tmp.apl_nodetree_zf_fact( 
+	cat_id      string        COMMENT 'sku分类cat_id',
+	cat_name    string        COMMENT '分类名称',
+	node1       string        COMMENT '一级分类',
+	node2       string        COMMENT '二级分类',
+	node3       string        COMMENT '三级分类',
+	node4       string        COMMENT '四级分类',
+	dt       	string        COMMENT '更新日期'
+)
+COMMENT '商品等级分类表'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
+
+--商品等级分类表(基础数据供使用)
+INSERT OVERWRITE TABLE  tmp.apl_nodetree_zf_fact
+SELECT 
+	cat_id, 
+	cat_name,
+	split(d.NODE,',')[0] node1, --一级分类
+	split(d.NODE,',')[1] node2, --二级分类
+	split(d.NODE,',')[2] node3, --三级分类
+	split(d.NODE,',')[3] node4,  --四级分类
+	dt
+FROM 
+    ods.ods_m_zaful_eload_category d
+WHERE d.dt='${DATE}'
+;
+
+
 --过滤上下架无库存
 INSERT overwrite TABLE dw_zaful_recommend.email_emp_zaful_onsale
 SELECT
