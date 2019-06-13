@@ -162,7 +162,7 @@
 
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
-			<to>zhanrui@globalegrow.com</to>
+			<to>xiongjun1@globalegrow.com</to>
 			<subject>recommend_gb_backup-wf failed</subject>
 			<body>recommend_gb_backup-wf daily stat failed!
                   Stat DATE:${timestamp()},

@@ -36,38 +36,31 @@ use dw_gearbest_recommend;
 -- 	) m;
 
 
---过滤算法sku
-DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_skus;
-CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_skus as
-	select DISTINCT goods_sn2 as good_sn
-		from dw_gearbest_recommend.gb_result_detail_page_gtq 
-		where concat(year, month, day)=${ADD_TIME}
-	UNION ALL
-	select DISTINCT goods_sn2 as good_sn 
-		from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
-		where concat(year, month, day)=${ADD_TIME}
-    ;
+-- --过滤算法sku
+-- DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_skus;
+-- CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_skus as
+-- 	select DISTINCT goods_sn2 as good_sn
+-- 		from dw_gearbest_recommend.gb_result_detail_page_gtq 
+-- 		where concat(year, month, day)=${ADD_TIME}
+-- 	UNION ALL
+-- 	select DISTINCT goods_sn2 as good_sn 
+-- 		from dw_gearbest_recommend.gb_result_detail_1_page_gtq 
+-- 		where concat(year, month, day)=${ADD_TIME}
+--     ;
 
---过滤第四推荐位、新品、盈利下相同pipeline_code,lang,catid的sku
-DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_cat_skus;
-CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_cat_skus as
-	select good_sn,pipeline_code,lang,categoryid as catid
-		from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact
-	UNION ALL
-	select good_sn,pipeline_code,lang,catid
-		from dw_gearbest_recommend.apl_lable_new_fact 
-	UNION ALL
-	select good_sn,pipeline_code,lang,catid
-		from dw_gearbest_recommend.apl_lable_money_fact
-    ;
-	
---过滤无分类相同pipeline_code,lang下的sku
-DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_skus;
-CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_skus as
-	select good_sn,pipeline_code,lang 
-		from dw_gearbest_recommend.goods_info_result_backup_nocategoryid_result GROUP BY good_sn,pipeline_code,lang
-    ;
-    
+-- --过滤第四推荐位、新品、盈利下相同pipeline_code,lang,catid的sku
+-- DROP TABLE IF EXISTS dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_cat_skus;
+-- CREATE TABLE dw_gearbest_recommend.tmp_gb_result_detail_page_pileline_lang_cat_skus as
+-- 	select good_sn,pipeline_code,lang,categoryid as catid
+-- 		from dw_gearbest_recommend.apl_result_detail_page_sponsored_fact
+-- 	UNION ALL
+-- 	select good_sn,pipeline_code,lang,catid
+-- 		from dw_gearbest_recommend.apl_lable_new_fact 
+-- 	UNION ALL
+-- 	select good_sn,pipeline_code,lang,catid
+-- 		from dw_gearbest_recommend.apl_lable_money_fact
+--     ;
+
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_backup_nocategoryid(
   `good_sn` string, 
   `goods_spu` string, 
