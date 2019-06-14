@@ -425,7 +425,7 @@
             <script>data_prepare_4.q</script>
 						 <param>ADD_TIME=${ADD_TIME}</param>
      	   </hive>
-        <ok to="hive_to_mongodb"/>
+        <ok to="hive_to_mongodb4"/>
         <error to="failed_mail"/>
     </action> 
   <action name="hive_to_mongodb">

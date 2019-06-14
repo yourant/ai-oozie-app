@@ -1,0 +1,546 @@
+<workflow-app name="recommend_gb_backup-wf" xmlns="uri:oozie:workflow:0.5">	
+<start to="DoneFlagChecker" />
+<action name="DoneFlagChecker">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>DoneFlagChecker(gb_recommend_base_data)</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlagChecker</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_recommend_base_data/lib/recommender.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 2g --driver-memory 2g --driver-cores 1 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>${YEAR}${MONTH}${DAY}</arg>
+			<arg>gb_recommend_base_data</arg>
+			<arg>apl_result_detail_page_sponsored_fact</arg>
+        </spark> 
+        <ok to="pipeline_language_import"/>
+        <error to="failed_mail"/>
+    </action>
+	   <action name="pipeline_language_import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				        <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+				        <property>
+				          <name>oozie.use.system.libpath</name>
+				          <value>true</value>
+				       </property>
+		      	</configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${db_url}</arg>
+            <arg>--username</arg>
+            <arg>${db_user}</arg>
+            <arg>--password</arg>
+            <arg>${db_password}</arg>
+			      <arg>--table</arg>
+            <arg>pipeline_language</arg>
+            <arg>--columns</arg>
+            <arg>id,pipeline_code,platform,status,lang,create_time,update_time,order,is_backup_default</arg>
+            <arg>--target-dir</arg>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/pipeline_language</arg>
+						<arg>--delete-target-dir</arg>
+			      <arg>--hive-drop-import-delims</arg>
+            <arg>--null-string</arg>
+						<arg>\\N</arg>
+						<arg>--null-non-string</arg>
+						<arg>\\N</arg>
+	      		<arg>--fields-terminated-by</arg>
+		      	<arg>\001</arg>
+			      <arg>--lines-terminated-by</arg>
+			      <arg>\n</arg>
+			      <arg>-m</arg>
+			      <arg>1</arg>
+        </sqoop>
+        <ok to="goods_info_result_backup_nocategoryid_result"/>
+        <error to="failed_mail"/>
+       </action>
+		<!--无分类汇总计算recommend_gb_backup_nocatgoryid.q  20190413 zhangyuchao-->	 
+		<action name="goods_info_result_backup_nocategoryid_result">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>recommend_gb_backup_nocatgoryid.q</script>
+						<param>ADD_TIME=${ADD_TIME}</param>
+        </hive>
+        <ok to="recommend_gb_backup_hive"/>
+        <error to="failed_mail"/>
+    </action> 
+    <action name="recommend_gb_backup_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>recommend_gb_backup.q</script>
+						<param>ADD_TIME=${ADD_TIME}</param>
+        </hive>
+        <ok to="recommend_gb_backup_redis"/>
+        <error to="failed_mail"/>
+    </action> 
+	<action name="recommend_gb_backup_redis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result/</arg>
+            <arg>/import-to-redis/goods_backup_result</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result</arg>
+            <arg>goods_backup_result</arg>
+            <arg>pipeline_code#lang#categoryid</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_one_noid" />
+		<error to="failed_mail" />
+	</action>
+	<!-- 以下一分为四兜底的四个推荐位无分类后补推荐数据 20190413 zhangyuchao -->
+		<action name="recommend_gb_backup_hive_one_noid">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_one_nocategoryid/</arg>
+            <arg>/import-to-redis/goods_backup_result_one_nocategoryid</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_one_nocategoryid</arg>
+            <arg>goods_backup_result_one_nocategoryid</arg>
+            <arg>pipeline_code#lang</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_two_noid" />
+		<error to="failed_mail" />
+	</action>
+
+	<action name="recommend_gb_backup_hive_two_noid">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_two_nocategoryid/</arg>
+            <arg>/import-to-redis/goods_backup_result_two_nocategoryid</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_two_nocategoryid</arg>
+            <arg>goods_backup_result_two_nocategoryid</arg>
+            <arg>pipeline_code#lang</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_three_noid" />
+		<error to="failed_mail" />
+	</action>
+
+	<action name="recommend_gb_backup_hive_three_noid">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_three_nocategoryid/</arg>
+            <arg>/import-to-redis/goods_backup_result_three_nocategoryid</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_three_nocategoryid</arg>
+            <arg>goods_backup_result_three_nocategoryid</arg>
+            <arg>pipeline_code#lang</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_four_noid" />
+		<error to="failed_mail" />
+	</action>
+
+	<action name="recommend_gb_backup_hive_four_noid">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_four_nocategoryid/</arg>
+            <arg>/import-to-redis/goods_backup_result_four_nocategoryid</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_four_nocategoryid</arg>
+            <arg>goods_backup_result_four_nocategoryid</arg>
+            <arg>pipeline_code#lang</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_one" />
+		<error to="failed_mail" />
+	</action>
+  <!-- 以下一分为四兜底的四个推荐位 20190409 zhangyuchao -->
+	<action name="recommend_gb_backup_hive_one">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_one/</arg>
+            <arg>/import-to-redis/goods_backup_result_one</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_one</arg>
+            <arg>goods_backup_result_one</arg>
+            <arg>pipeline_code#lang#categoryid</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_two" />
+		<error to="failed_mail" />
+	</action>
+
+	<action name="recommend_gb_backup_hive_two">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_two/</arg>
+            <arg>/import-to-redis/goods_backup_result_two</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_two</arg>
+            <arg>goods_backup_result_two</arg>
+            <arg>pipeline_code#lang#categoryid</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_three" />
+		<error to="failed_mail" />
+	</action>
+
+	<action name="recommend_gb_backup_hive_three">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_three/</arg>
+            <arg>/import-to-redis/goods_backup_result_three</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_three</arg>
+            <arg>goods_backup_result_three</arg>
+            <arg>pipeline_code#lang#categoryid</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_four" />
+		<error to="failed_mail" />
+	</action>
+
+	<action name="recommend_gb_backup_hive_four">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_four/</arg>
+            <arg>/import-to-redis/goods_backup_result_four</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_four</arg>
+            <arg>goods_backup_result_four</arg>
+            <arg>pipeline_code#lang#categoryid</arg>
+		</java>
+		<ok to="recommend_gb_backup_hive_detail2" />
+		<error to="failed_mail" />
+	</action>
+
+	<!-- 以下是商详页第二推荐位的后补数据 -->
+    <action name="recommend_gb_backup_hive_detail2">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>recommend_gb_detail2_backup.q</script>
+        </hive>
+        <ok to="recommend_gb_backup_detail2_ctg_redis"/>
+        <error to="failed_mail"/>
+    </action> 
+	
+	<action name="recommend_gb_backup_detail2_ctg_redis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_detail2_ctg/</arg>
+            <arg>/import-to-redis/goods_backup_result_detail2_ctg</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_detail2_ctg</arg>
+            <arg>goods_backup_result_detail2_ctg</arg>
+            <arg>pipeline_code#lang#categoryid</arg>
+		</java>
+		<ok to="recommend_gb_backup_detail2_redis" />
+		<error to="failed_mail" />
+	</action>
+
+<action name="recommend_gb_backup_detail2_redis">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.mapreduce.GbRecommendRedisMR</main-class>
+            <arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_backup_result_detail2/</arg>
+            <arg>/import-to-redis/goods_backup_result_detail2</arg>
+            <arg>dw_gearbest_recommend</arg>
+            <arg>goods_backup_result_detail2</arg>
+            <arg>goods_backup_result_detail2</arg>
+            <arg>pipeline_code#lang</arg>
+		</java>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+
+
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>xiongjun1@globalegrow.com</to>
+			<subject>recommend_gb_backup-wf failed</subject>
+			<body>recommend_gb_backup-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>

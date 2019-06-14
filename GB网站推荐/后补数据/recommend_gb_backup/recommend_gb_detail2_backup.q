@@ -403,7 +403,7 @@ LEFT OUTER JOIN
 	r.categoryid,
 	m.goods_spu
 	FROM 
-		dw_gearbest_recommend.goods_backup_result r
+		dw_gearbest_recommend.goods_backup_result_one r
 	JOIN 
 		dw_gearbest_recommend.goods_info_mid5 m
 	ON r.good_sn = m.good_sn
@@ -412,7 +412,22 @@ ON t1.goods_spu = t4.goods_spu
 AND t1.pipeline_code = t4.pipeline_code 
 AND t1.lang = t4.lang 
 AND t1.category_id = t4.categoryid 
-WHERE t4.goods_spu is null
+LEFT OUTER JOIN 
+(SELECT r.good_sn,
+	r.pipeline_code,
+	r.lang,
+	m.goods_spu
+	FROM 
+		dw_gearbest_recommend.goods_backup_result_one_nocategoryid r
+	JOIN 
+		dw_gearbest_recommend.goods_info_mid5 m
+	ON r.good_sn = m.good_sn
+) t5 
+ON t1.goods_spu = t5.goods_spu 
+AND t1.pipeline_code = t5.pipeline_code 
+AND t1.lang = t5.lang 
+WHERE t4.goods_spu is null 
+AND t5.goods_spu is null
 ;
 
 
@@ -571,7 +586,7 @@ LEFT OUTER JOIN
 	r.lang,
 	m.goods_spu
 	FROM 
-		dw_gearbest_recommend.goods_backup_result r
+		dw_gearbest_recommend.goods_backup_result_one r
 	JOIN 
 		dw_gearbest_recommend.goods_info_mid5 m
 	ON r.good_sn = m.good_sn
@@ -584,5 +599,20 @@ AND t1.lang = t4.lang
 -- AND t1.pipeline_code = t5.pipeline_code 
 -- AND t1.lang = t5.lang 
 --WHERE t5.goods_spu is null
+LEFT OUTER JOIN 
+(SELECT r.good_sn,
+	r.pipeline_code,
+	r.lang,
+	m.goods_spu
+	FROM 
+		dw_gearbest_recommend.goods_backup_result_one_nocategoryid r
+	JOIN 
+		dw_gearbest_recommend.goods_info_mid5 m
+	ON r.good_sn = m.good_sn
+) t5 
+ON t1.goods_spu = t5.goods_spu 
+AND t1.pipeline_code = t5.pipeline_code 
+AND t1.lang = t5.lang 
 WHERE t4.goods_spu is null
+AND t5.goods_spu is null
 ;

@@ -32,7 +32,10 @@ FROM
 JOIN 
     dw_gearbest_recommend.gb_new_product_lable n
 ON 
-    m.good_sn = n.good_sn;
+    m.good_sn = n.good_sn
+--T+1过滤
+WHERE
+	m.stock_qty > 0 AND m.goods_status = 2;
 
 --各分类数据统计，取当前分类商品
 INSERT overwrite TABLE dw_gearbest_recommend.gb_new_product_backup_current_tmp  SELECT
