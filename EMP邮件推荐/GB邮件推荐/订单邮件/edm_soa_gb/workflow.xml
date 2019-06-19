@@ -231,7 +231,7 @@
             <arg>good_sn,goods_spu,id,level_1,level_2,level_3,level_4</arg>
             <arg>string,string,int,int,int,int,int,int</arg>
             <arg>etl_date</arg>
-            <arg>20180801</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
 		</java>
 		<ok to="wait_mongodb" />
 		<error to="failed_mail" />
