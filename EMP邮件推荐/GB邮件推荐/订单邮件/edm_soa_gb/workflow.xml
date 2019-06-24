@@ -95,7 +95,7 @@
 			<param>DATE=${DATE}</param>
 			
         </hive>
-        <ok to="gb_order_order_goods_detail_exp_to_mongodb"/>
+        <ok to="gb_goods_info_result_detail_exp_to_mongodb"/>
         <error to="failed_mail"/>
    	    </action>
    	    <action name="gb_order_order_goods_detail_exp_to_mongodb">
@@ -232,10 +232,46 @@
             <arg>string,string,int,int,int,int,int,int</arg>
             <arg>etl_date</arg>
             <arg>${YEAR}${MONTH}${DAY}</arg>
+			<arg>DeleteHistoryData</arg>
 		</java>
-		<ok to="wait_mongodb" />
+		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />
 	</action>
+<action name="doneflag_toredis">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                   <property>
+                     <name>jobTracker</name>
+                     <value>${jobTracker}</value>
+                   </property>
+                   <property>
+                     <name>nameNode</name>
+                     <value>${nameNode}</value>
+                   </property>
+                      <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+                      <property>
+                        <name>oozie.use.system.libpath</name>
+                        <value>true</value>
+                      </property>
+               </configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>DoneFlag2Redis(gb_recommend_emp_data)</name> 
+            <class>com.glbg.ai.recommend_gb.DoneFlag2Redis</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_recommend_base_data/lib/recommender.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+               <arg>${YEAR}${MONTH}${DAY}</arg>
+               <arg>gb_recommend_base_data</arg>
+               <arg>gb_goods_info_result_detail_exp</arg>
+        </spark> 
+        <ok to="wait_mongodb"/>
+        <error to="failed_mail"/>
+</action>
    	    <action name="wait_mongodb">
 		<java>
 			<job-tracker>${jobTracker}</job-tracker>
@@ -669,4 +705,3 @@
 	</kill>
 	<end name="end" />
 </workflow-app>
-
