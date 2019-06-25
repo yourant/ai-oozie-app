@@ -1,0 +1,161 @@
+<workflow-app name="zaful_app_category_planid_hive-wd" xmlns="uri:oozie:workflow:0.5">
+	<start to="feature_items_base_info_ods_hive1" />
+
+	<action name="feature_items_base_info_ods_hive1">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property>
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				<property>
+				  <name>DATE_W</name>
+				  <value>${DATE_W}</value>
+				</property>
+            </configuration>
+            <script>af_contend_af_quantity.q</script>
+			 <param>YEAR=${YEAR}</param>
+			 <param>MONTH=${MONTH}</param>
+			 <param>DAY=${DAY}</param>
+			 <param>DATE=${DATE}</param>
+			 <param>DATE_W=${DATE_W}</param>
+        </hive>
+        <ok to="feature_items_base_info_ods_hive2"/>
+        <error to="failed_mail"/>
+    </action> 
+
+	<action name="feature_items_base_info_ods_hive2">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property>
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				<property>
+				  <name>DATE_W</name>
+				  <value>${DATE_W}</value>
+				</property>
+            </configuration>
+            <script>feature_items_country.q</script>
+			 <param>YEAR=${YEAR}</param>
+			 <param>MONTH=${MONTH}</param>
+			 <param>DAY=${DAY}</param>
+			 <param>DATE=${DATE}</param>
+			 <param>DATE_W=${DATE_W}</param>
+        </hive>
+        <ok to="feature_items_base_info_ods_hive3"/>
+        <error to="failed_mail"/>
+    </action> 
+
+	<action name="feature_items_base_info_ods_hive3">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property>
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				<property>
+				  <name>DATE_W</name>
+				  <value>${DATE_W}</value>
+				</property>
+            </configuration>
+            <script>tendency_stability_index.q</script>
+			 <param>YEAR=${YEAR}</param>
+			 <param>MONTH=${MONTH}</param>
+			 <param>DAY=${DAY}</param>
+			 <param>DATE=${DATE}</param>
+			 <param>DATE_W=${DATE_W}</param>
+        </hive>
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action> 
+
+		
+   
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>15720612681@163.com</to>
+			<subject>商品统计信息表分国家</subject>
+			<body>feature_items_country-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

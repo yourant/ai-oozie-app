@@ -1,6 +1,19 @@
+#!/bin/sh
+today=$(date +%Y%m%d)
+day=$(date +%d)
+
+#使用每天浏览数据
+start_time=$(date -d "today -1day" +%Y%m%d)
+DATE=$(date -d "$start_time" +%Y%m%d)
+YEAR=$(date -d "$start_time" +%Y)
+MONTH=$(date -d "$start_time" +%m)
+DAY=$(date -d "$start_time" +%d)
+
+hive -e"
+set mapred.job.queue.name = root.bigdata.offline;
 --商品类目信息
-insert
-  overwrite table zaful_recommend.sku_category
+drop table if exists temp_zaful_recommend.sku_category;
+create table temp_zaful_recommend.sku_category as
 select
   m.cat_id,
   m.cat_name,
@@ -31,17 +44,28 @@ from
               cat_name,
               node
             from
-              stg.zaful_eload_category
+              ods.ods_m_zaful_eload_category
+            WHERE
+              dt= ${DATE}
           ) a
       ) b
   ) m
-  join stg.zaful_eload_goods n on m.cat_id = n.cat_id
+  join (
+    select
+      * 
+    from
+      ods.ods_m_zaful_eload_goods
+    where
+      dt = ${DATE}
+  )n on m.cat_id = n.cat_id
 where
   length(n.goods_sn) = 9;
 
 
+set mapred.job.queue.name = root.bigdata.offline;
 --商品价格、库存、星级、评论信息
-insert overwrite TABLE zaful_recommend.zaful_item
+drop table if exists temp_zaful_recommend.zaful_item;
+create table temp_zaful_recommend.zaful_item as
 SELECT
   n.goods_sn as item_id,
   n.item_price,
@@ -83,14 +107,18 @@ FROM(
           end as sale_status,
           add_time
         FROM
-          stg.zaful_eload_goods
+          ods.ods_m_zaful_eload_goods
+        WHERE
+          dt = ${DATE}
       ) a
       left join(
         SELECT
           goods_id,
           is_24h_ship
         FROM
-          stg.zaful_eload_goods_extend
+          ods.ods_m_zaful_eload_goods_extend
+        WHERE
+          dt = ${DATE}
       ) b on a.goods_id = b.goods_id
   ) n
   LEFT JOIN(
@@ -118,11 +146,13 @@ where
   length(n.goods_sn) = 9;
 
 
+
+set mapred.job.queue.name =  root.bigdata.offline;
 --插入数据
-insert overwrite table dw_zaful_recommend.feature_items_base_info partition (year=${YEAR},month=${MONTH},day=${DAY})
+insert overwrite table temp_zaful_recommend.feature_items_base_info partition (year=${YEAR},month=${MONTH},day=${DAY})
 select
   b.goods_sn as item_id,
-  cat_id as item_cat_id,
+  b.cat_id as item_cat_id,
   b.cat_name as item_cat_name,
   b.nodes as item_category_list,
   (
@@ -197,4 +227,4 @@ from
     FROM
       zaful_recommend.zaful_item
   ) c on b.goods_sn = c.item_id;
-
+"

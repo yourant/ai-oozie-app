@@ -16,64 +16,61 @@ DAY=$(date -d "$start_time" +%d)
 hive -e"
 set mapred.job.queue.name = root.ai.offline;
 --商品点击数据(天)
-insert overwrite table zaful_recommend.goods_click_day_country
+insert overwrite table temp_zaful_recommend.goods_click_day_country
 select 
-    a.*,
-    a.geoip_city_country_code as country_code 
-from (
-    select 
-        *,
-        get_json_object(glb_skuinfo, '$.sku') as goods_sn 
-    from 
-        stg.zf_pc_event_info 
-    where 
-        year=${YEAR} 
-        and month=${MONTH} 
-        and day=${DAY}
-    ) a;
+    *,
+    get_json_object(skuinfo, '$.sku') as goods_sn 
+from 
+    ods.ods_pc_burial_log 
+where 
+	site='zaful'
+    and year=${YEAR} 
+    and month=${MONTH} 
+    and day=${DAY};
 
 set mapred.job.queue.name = root.ai.offline;
 --商品曝光数据(天)
-insert overwrite table zaful_recommend.goods_exposure_day_country 
+insert overwrite table temp_zaful_recommend.goods_exposure_day_country 
 select 
-    m.glb_plf,
+    m.platform,
     m.country_code,
     m.goods_sn,
     count(*) as number,
-    count(distinct m.glb_od) as uv,
-    count(*)/count(distinct m.glb_od) as aver 
+    count(distinct m.cookie_id) as uv,
+    count(*)/count(distinct m.cookie_id) as aver 
 from (
     select 
-        a.glb_od,
+        a.cookie_id,
         a.country_code,
-        a.glb_plf,
-        get_json_object(b.glb_ubcta_col,'$.sku') as goods_sn 
+        a.platform,
+        get_json_object(b.sub_event_field,'$.sku') as goods_sn 
     from (
         select 
-            glb_od,
-            geoip_city_country_code as country_code,
+            cookie_id,
+            country_code,
             log_id,
-            glb_plf,
+            platform,
             year,
             month,
             day 
         from 
-            zaful_recommend.goods_click_day_country 
+            temp_zaful_recommend.goods_click_day_country 
         where 
-            glb_t = 'ie' 
-            and glb_ubcta!=''
+            behaviour_type = 'ie' 
+            and sub_event_field!=''
         ) a 
     join (
         select 
             log_id,
-            glb_ubcta_col,
+            sub_event_field,
             year,
             month,
             day 
         from 
-            stg.zf_pc_event_ubcta_info 
+            ods.ods_pc_burial_log_ubcta 
         where 
-            year=${YEAR}
+		    site='zaful'
+            and year=${YEAR}
             and month=${MONTH} 
             and day=${DAY}
         ) b 
@@ -84,15 +81,15 @@ from (
         and a.day=b.day
     ) m 
 group by 
-    m.glb_plf,
+    m.platform,
     m.country_code,
     m.goods_sn;
 
 set mapred.job.queue.name = root.ai.offline;
 --商品下单数据(天)
-insert overwrite table zaful_recommend.goods_order_day_country 
+insert overwrite table temp_zaful_recommend.goods_order_day_country 
 select 
-    x.glb_plf,
+    x.platform,
     x.country_code,
     x.goods_sn,
     sum(x.goods_number) as number,
@@ -100,14 +97,14 @@ select
     sum(x.goods_number)/count(distinct x.user_id) as aver 
 from (
     select 
-        p.glb_plf,
+        p.platform,
         p.user_id,
         p.goods_sn,
         p.goods_number,
         q.country_code 
     from (
         select 
-            'pc' as glb_plf,
+            'pc' as platform,
             f.country,
             f.user_id,
             g.goods_sn,
@@ -121,20 +118,20 @@ from (
                     order_id,
                     user_id 
                 from 
-                    stg.zaful_eload_order_info 
+                    ods.ods_m_zaful_eload_order_info 
                 where 
-                    order_status!=0 and order_status!=11 
-                    and from_unixtime(add_time,'yyyyMMdd')=${DATE} 
+                    dt = ${DATE} and order_status!=0 and order_status!=11 
+                    and from_unixtime(add_time+ 8 * 3600,'yyyyMMdd')=${DATE} 
                     and (order_sn like 'UU1%' or order_sn like 'U1%')
                 ) a
             ) f 
         join 
-            stg.zaful_eload_order_goods g 
+            (select * from ods.ods_m_zaful_eload_order_goods where dt = ${DATE}) g 
         on 
             f.order_id = g.order_id 
     union all 
         select 
-            'm' as glb_plf,
+            'm' as platform,
             m.country,
             m.user_id,
             n.goods_sn,
@@ -148,15 +145,15 @@ from (
                     order_id,
                     user_id 
                 from 
-                    stg.zaful_eload_order_info 
+                    ods.ods_m_zaful_eload_order_info 
                 where 
-                    order_status!=0 and order_status!=11 
-                    and from_unixtime(add_time,'yyyyMMdd')=${DATE} 
+                    dt = ${DATE} and order_status!=0 and order_status!=11 
+                    and from_unixtime(add_time+ 8 * 3600,'yyyyMMdd')=${DATE} 
                     and (order_sn like 'UL%' or order_sn like 'UM%')
                 ) b
             ) m 
         join 
-            stg.zaful_eload_order_goods n 
+            (select * from ods.ods_m_zaful_eload_order_goods where dt = ${DATE}) n 
         on 
             m.order_id = n.order_id
     ) p 
@@ -175,14 +172,14 @@ from (
         p.country=q.region_id
 ) x 
 group by 
-    x.glb_plf,
+    x.platform,
     x.country_code,
     x.goods_sn;
 
 
 set mapred.job.queue.name = root.ai.offline;
 --pc端整合
-insert overwrite table zaful_recommend.item_info_pc_country11 
+insert overwrite table temp_zaful_recommend.item_info_pc_country11 
 select 
     b.goods_sn as item_id,
     b.country_code as country,
@@ -207,25 +204,25 @@ from (
     select 
         * 
     from 
-        zaful_recommend.goods_exposure_day_country 
+        temp_zaful_recommend.goods_exposure_day_country 
     where 
-        glb_plf='pc'
+        platform='pc'
     ) b 
 left join (
     select 
         country_code,
         goods_sn,
         count(*) as item_click_cnt_pc,
-        count(distinct glb_od) as item_click_uv_pc,
-        count(*)/count(distinct glb_od) as item_click_per_cnt_pc 
+        count(distinct cookie_id) as item_click_uv_pc,
+        count(*)/count(distinct cookie_id) as item_click_per_cnt_pc 
     from 
-        zaful_recommend.goods_click_day_country
+        temp_zaful_recommend.goods_click_day_country
     where 
-        glb_t = 'ic' 
-        and glb_x in ('sku','addtobag') 
-        and glb_od!='' 
-        and get_json_object(glb_skuinfo,'$.sku')!='' 
-        and glb_plf='pc' 
+        behaviour_type = 'ic' 
+        and sub_event_info in ('sku','addtobag') 
+        and cookie_id!='' 
+        and get_json_object(skuinfo,'$.sku')!='' 
+        and platform='pc' 
     group by 
         country_code,
         goods_sn
@@ -237,15 +234,15 @@ left join (
     select 
         country_code,
         goods_sn,count(*) as item_cart_cnt_pc,
-        count(distinct glb_od) as item_cart_uv_pc,
-        count(*)/count(distinct glb_od) as item_cart_per_cnt_pc 
+        count(distinct cookie_id) as item_cart_uv_pc,
+        count(*)/count(distinct cookie_id) as item_cart_per_cnt_pc 
     from 
-        zaful_recommend.goods_click_day_country
+        temp_zaful_recommend.goods_click_day_country
     where 
-        glb_t = 'ic' 
-        and glb_x = 'ADT' 
-        and get_json_object(glb_skuinfo,'$.sku')!='' 
-        and glb_plf='pc' 
+        behaviour_type = 'ic' 
+        and sub_event_info = 'ADT' 
+        and get_json_object(skuinfo,'$.sku')!='' 
+        and platform='pc' 
     group by 
         country_code,
         goods_sn
@@ -258,16 +255,16 @@ left join (
         country_code,
         goods_sn,
         count(*) as item_collected_cnt_pc,
-        count(distinct glb_od) as item_collected_uv_pc,
-        count(*)/count(distinct glb_od) as item_collected_per_cnt_pc 
+        count(distinct cookie_id) as item_collected_uv_pc,
+        count(*)/count(distinct cookie_id) as item_collected_per_cnt_pc 
     from 
-        zaful_recommend.goods_click_day_country 
+        temp_zaful_recommend.goods_click_day_country 
     where 
-        glb_t = 'ic' 
-        and glb_x = 'ADF' 
-        and glb_u!='' 
-        and get_json_object(glb_skuinfo,'$.sku')!='' 
-        and glb_plf='pc' 
+        behaviour_type = 'ic' 
+        and sub_event_info = 'ADF' 
+        and user_id!='' 
+        and get_json_object(skuinfo,'$.sku')!='' 
+        and platform='pc' 
     group by 
         country_code,
         goods_sn
@@ -279,19 +276,19 @@ left join (
     select 
         * 
     from 
-        zaful_recommend.goods_order_day_country 
+        temp_zaful_recommend.goods_order_day_country 
     where 
-        glb_plf='pc'
+        platform='pc'
     ) f 
 on 
     b.goods_sn=f.goods_sn 
-    and b.country_code=f.country_code
+    and b.country_code=f.country_code  
 where b.number is not null;
 
 
 set mapred.job.queue.name = root.ai.offline;
 --m端整合
-insert overwrite table zaful_recommend.item_info_m_country11 
+insert overwrite table temp_zaful_recommend.item_info_m_country11 
 select 
     b.goods_sn as item_id,
     b.country_code as country,
@@ -316,25 +313,25 @@ from (
     select 
         * 
     from 
-        zaful_recommend.goods_exposure_day_country 
+        temp_zaful_recommend.goods_exposure_day_country 
     where 
-        glb_plf='m'
+        platform='m'
     ) b 
 left join (
     select 
         country_code,
         goods_sn,
         count(*) as item_click_cnt_m,
-        count(distinct glb_od) as item_click_uv_m,
-        count(*)/count(distinct glb_od) as item_click_per_cnt_m 
+        count(distinct cookie_id) as item_click_uv_m,
+        count(*)/count(distinct cookie_id) as item_click_per_cnt_m 
     from 
-        zaful_recommend.goods_click_day_country 
+        temp_zaful_recommend.goods_click_day_country 
     where 
-        glb_t = 'ic' 
-        and glb_x in ('sku','addtobag') 
-        and glb_od!='' 
-        and get_json_object(glb_skuinfo,'$.sku')!='' 
-        and glb_plf='m' 
+        behaviour_type = 'ic' 
+        and sub_event_info in ('sku','addtobag') 
+        and cookie_id!='' 
+        and get_json_object(skuinfo,'$.sku')!='' 
+        and platform='m' 
     group by 
         country_code,
         goods_sn
@@ -347,15 +344,15 @@ left join (
         country_code,
         goods_sn,
         count(*) as item_cart_cnt_m,
-        count(distinct glb_od) as item_cart_uv_m,
-        count(*)/count(distinct glb_od) as item_cart_per_cnt_m 
+        count(distinct cookie_id) as item_cart_uv_m,
+        count(*)/count(distinct cookie_id) as item_cart_per_cnt_m 
     from 
-        zaful_recommend.goods_click_day_country 
+        temp_zaful_recommend.goods_click_day_country 
     where 
-        glb_t = 'ic' 
-        and glb_x = 'ADT' 
-        and get_json_object(glb_skuinfo,'$.sku')!='' 
-        and glb_plf='m' 
+        behaviour_type = 'ic' 
+        and sub_event_info = 'ADT' 
+        and get_json_object(skuinfo,'$.sku')!='' 
+        and platform='m' 
     group by 
         country_code,
         goods_sn
@@ -368,16 +365,16 @@ left join (
         country_code,
         goods_sn,
         count(*) as item_collected_cnt_m,
-        count(distinct glb_od) as item_collected_uv_m,
-        count(*)/count(distinct glb_od) as item_collected_per_cnt_m 
+        count(distinct cookie_id) as item_collected_uv_m,
+        count(*)/count(distinct cookie_id) as item_collected_per_cnt_m 
     from 
-        zaful_recommend.goods_click_day_country 
+        temp_zaful_recommend.goods_click_day_country 
     where 
-        glb_t = 'ic' 
-        and glb_x = 'ADF' 
-        and glb_u!='' 
-        and get_json_object(glb_skuinfo,'$.sku')!='' 
-        and glb_plf='m' 
+        behaviour_type = 'ic' 
+        and sub_event_info = 'ADF' 
+        and user_id!='' 
+        and get_json_object(skuinfo,'$.sku')!='' 
+        and platform='m' 
     group by 
         country_code,
         goods_sn
@@ -389,20 +386,20 @@ left join (
     select 
         * 
     from 
-        zaful_recommend.goods_order_day_country 
+        temp_zaful_recommend.goods_order_day_country 
     where 
-        glb_plf='m'
+        platform='m'
     ) f 
 on 
     b.goods_sn=f.goods_sn 
-    and b.country_code=f.country_code
+    and b.country_code=f.country_code 
 where 
     b.number is not null;
 
 
 set mapred.job.queue.name = root.ai.offline;
 --按天写分区表：pc平台按国家统计
-insert overwrite table dw_zaful_recommend.feature_items_country_v1_1 partition (platform='pc', year=${YEAR},month=${MONTH},day=${DAY})  
+insert overwrite table dw_zaful_recommend.feature_items_country_v2_2 partition (platform='pc', year=${YEAR},month=${MONTH},day=${DAY})  
 select 
     item_id,
     country,
@@ -423,7 +420,7 @@ select
     (case when order_per_cnt is not null then order_per_cnt else 0.0 end) as order_per_cnt,
     (case when cvr is not null then cvr else 0.0 end) as cvr,
     (case when uv_cvr is not null then uv_cvr else 0.0 end) as uv_cvr
-from zaful_recommend.item_info_pc_country11 
+from temp_zaful_recommend.item_info_pc_country11 
 where 
     item_id is not null 
     and item_id<>'';
@@ -431,7 +428,7 @@ where
 
 set mapred.job.queue.name = root.ai.offline;
 --按天写分区表：m平台按国家统计
-insert overwrite table dw_zaful_recommend.feature_items_country_v1_1 partition (platform='m', year=${YEAR},month=${MONTH},day=${DAY})  
+insert overwrite table dw_zaful_recommend.feature_items_country_v2_2 partition (platform='m', year=${YEAR},month=${MONTH},day=${DAY})  
 select 
     item_id,
     country,
@@ -452,15 +449,14 @@ select
     (case when order_per_cnt is not null then order_per_cnt else 0.0 end) as order_per_cnt,
     (case when cvr is not null then cvr else 0.0 end) as cvr,
     (case when uv_cvr is not null then uv_cvr else 0.0 end) as uv_cvr
-from zaful_recommend.item_info_m_country11 
+from temp_zaful_recommend.item_info_m_country11 
 where 
     item_id is not null 
     and item_id<>'';
 
-
 set mapred.job.queue.name = root.ai.offline;
 --app当天埋点数据
-insert overwrite table zaful_recommend.app_click_day_country 
+insert overwrite table temp_zaful_recommend.app_click_day_country 
 select
   *
 from
@@ -475,7 +471,7 @@ where
 
 set mapred.job.queue.name = root.ai.offline;
 --app当天曝光数据
-insert overwrite table zaful_recommend.app_goods_exposure_country  
+insert overwrite table temp_zaful_recommend.app_goods_exposure_country  
 select 
    b.country_code,
    b.platform,
@@ -492,7 +488,7 @@ from (
             platform,
             get_json_object(event_value, '$.af_content_id') as skus 
         from 
-            zaful_recommend.app_click_day_country 
+            temp_zaful_recommend.app_click_day_country 
         where 
             event_name='af_impression'
         ) a 
@@ -506,7 +502,7 @@ group by
 
 set mapred.job.queue.name = root.ai.offline;
 --app当天下单数据
-insert overwrite table zaful_recommend.app_goods_order_country 
+insert overwrite table temp_zaful_recommend.app_goods_order_country 
 select 
     x.platform,
     x.country,
@@ -539,15 +535,15 @@ from (
                     order_id,
                     user_id 
                 from 
-                    stg.zaful_eload_order_info 
+                    ods.ods_m_zaful_eload_order_info 
                 where 
-                    order_status!=0 and order_status!=11 
-                    and from_unixtime(add_time,'yyyyMMdd')=${DATE} 
+                    dt = ${DATE} and order_status!=0 and order_status!=11 
+                    and from_unixtime(add_time+ 8 * 3600,'yyyyMMdd')=${DATE} 
                     and (order_sn like 'UA%' or order_sn like 'UUA%')
                 ) a
             ) f 
         join 
-            stg.zaful_eload_order_goods g 
+            (select * from ods.ods_m_zaful_eload_order_goods where dt = ${DATE}) g 
         on 
             f.order_id = g.order_id 
     union all 
@@ -566,15 +562,15 @@ from (
                     order_id,
                     user_id 
                 from 
-                    stg.zaful_eload_order_info 
+                    ods.ods_m_zaful_eload_order_info 
                 where 
-                    order_status!=0 and order_status!=11 
-                    and from_unixtime(add_time,'yyyyMMdd')=${DATE} 
+                    dt = ${DATE} and order_status!=0 and order_status!=11 
+                    and from_unixtime(add_time+ 8 * 3600,'yyyyMMdd')=${DATE} 
                     and (order_sn like 'UB%' or order_sn like 'UUB%')
                 ) b
             ) m 
         join 
-            stg.zaful_eload_order_goods n 
+            (select * from ods.ods_m_zaful_eload_order_goods where dt = ${DATE}) n 
         on 
             m.order_id = n.order_id 
         ) p 
@@ -600,7 +596,7 @@ on
 
 set mapred.job.queue.name = root.ai.offline;
 --ios端数据整合
-insert overwrite table zaful_recommend.item_info_ios_country 
+insert overwrite table temp_zaful_recommend.item_info_ios_country 
 select 
     b.goods as item_id,
     b.country_code,
@@ -625,7 +621,7 @@ from (
     select 
         * 
     from 
-        zaful_recommend.app_goods_exposure_country 
+        temp_zaful_recommend.app_goods_exposure_country 
     where 
         platform='ios'
     ) b 
@@ -637,7 +633,7 @@ left join (
         count(distinct appsflyer_device_id) as item_click_uv_ios,
         count(*)/count(distinct appsflyer_device_id) as item_click_per_cnt_ios 
     from 
-        zaful_recommend.app_click_day_country 
+        temp_zaful_recommend.app_click_day_country 
     where 
         event_name='af_view_product' 
         and get_json_object(event_value, '$.af_changed_size_or_color') = 0 
@@ -657,7 +653,7 @@ left join (
         count(distinct appsflyer_device_id) as item_cart_uv_ios,
         count(*)/count(distinct appsflyer_device_id) as item_cart_per_cnt_ios 
     from 
-        zaful_recommend.app_click_day_country 
+        temp_zaful_recommend.app_click_day_country 
     where 
         event_name='af_add_to_bag' 
         and platform='ios' 
@@ -676,7 +672,7 @@ left join (
         count(distinct appsflyer_device_id) as item_collected_uv_ios,
         count(*)/count(distinct appsflyer_device_id) as item_collected_per_cnt_ios 
     from 
-        zaful_recommend.app_click_day_country 
+        temp_zaful_recommend.app_click_day_country 
     where 
         event_name='af_add_to_wishlist' 
         and platform='ios' 
@@ -691,7 +687,7 @@ left join (
     select 
         * 
     from 
-        zaful_recommend.app_goods_order_country 
+        temp_zaful_recommend.app_goods_order_country 
     where 
         platform='ios'
     ) f 
@@ -702,7 +698,7 @@ on
 
 set mapred.job.queue.name = root.ai.offline;
 --android端数据整合
-insert overwrite table zaful_recommend.item_info_android_country 
+insert overwrite table temp_zaful_recommend.item_info_android_country 
 select 
     b.goods as item_id,
     b.country_code,
@@ -727,7 +723,7 @@ from (
     select 
         * 
     from 
-        zaful_recommend.app_goods_exposure_country 
+        temp_zaful_recommend.app_goods_exposure_country 
     where 
         platform='android'
     ) b 
@@ -739,7 +735,7 @@ left join (
         count(distinct appsflyer_device_id) as item_click_uv_android,
         count(*)/count(distinct appsflyer_device_id) as item_click_per_cnt_android 
     from 
-        zaful_recommend.app_click_day_country 
+        temp_zaful_recommend.app_click_day_country 
     where 
         event_name='af_view_product' 
         and get_json_object(event_value, '$.af_changed_size_or_color') = 0 
@@ -759,7 +755,7 @@ left join (
         count(distinct appsflyer_device_id) as item_cart_uv_android,
         count(*)/count(distinct appsflyer_device_id) as item_cart_per_cnt_android 
     from 
-        zaful_recommend.app_click_day_country 
+        temp_zaful_recommend.app_click_day_country 
     where 
         event_name='af_add_to_bag' 
         and platform='android' 
@@ -778,7 +774,7 @@ left join (
         count(distinct appsflyer_device_id) as item_collected_uv_android,
         count(*)/count(distinct appsflyer_device_id) as item_collected_per_cnt_android 
     from 
-        zaful_recommend.app_click_day_country 
+        temp_zaful_recommend.app_click_day_country 
     where 
         event_name='af_add_to_wishlist' 
         and platform='android' 
@@ -793,7 +789,7 @@ left join (
     select 
         * 
     from 
-        zaful_recommend.app_goods_order_country 
+        temp_zaful_recommend.app_goods_order_country 
     where 
         platform='android'
     ) f 
@@ -804,7 +800,7 @@ on
 
 set mapred.job.queue.name = root.ai.offline;
 --按天写分区表：ios平台按国家统计
-insert overwrite table dw_zaful_recommend.feature_items_country_v1_1 partition (platform='ios', year=${YEAR},month=${MONTH},day=${DAY})  
+insert overwrite table dw_zaful_recommend.feature_items_country_v2_2 partition (platform='ios', year=${YEAR},month=${MONTH},day=${DAY})  
 select 
     item_id,
     country_code as country,
@@ -824,8 +820,8 @@ select
     (case when item_ios_order_uv is not null then item_ios_order_uv else 0 end) as order_uv,
     (case when item_ios_order_per_cnt is not null then item_ios_order_per_cnt else 0.0 end) as order_per_cnt,
     (case when item_ios_cvr is not null then item_ios_cvr else 0.0 end) as cvr,
-    (case when item_ios_uv_cvr is not null then item_ios_uv_cvr else 0.0 end) as uv_cvr
-from zaful_recommend.item_info_ios_country 
+    (case when item_ios_uv_cvr is not null then item_ios_uv_cvr else 0.0 end) as uv_cvr 
+from temp_zaful_recommend.item_info_ios_country 
 where 
     item_id is not null 
     and item_id<>'';
@@ -833,7 +829,7 @@ where
 
 set mapred.job.queue.name = root.ai.offline;
 --按天写分区表：android平台按国家统计
-insert overwrite table dw_zaful_recommend.feature_items_country_v1_1 partition (platform='android', year=${YEAR},month=${MONTH},day=${DAY})  
+insert overwrite table dw_zaful_recommend.feature_items_country_v2_2 partition (platform='android', year=${YEAR},month=${MONTH},day=${DAY})  
 select 
     item_id,
     country_code as country,
@@ -853,10 +849,10 @@ select
     (case when item_android_order_uv is not null then item_android_order_uv else 0 end) as order_uv,
     (case when item_android_order_per_cnt is not null then item_android_order_per_cnt else 0.0 end) as order_per_cnt,
     (case when item_android_cvr is not null then item_android_cvr else 0.0 end) as cvr,
-    (case when item_android_uv_cvr is not null then item_android_uv_cvr else 0.0 end) as uv_cvr
-from zaful_recommend.item_info_android_country 
+    (case when item_android_uv_cvr is not null then item_android_uv_cvr else 0.0 end) as uv_cvr 
+from temp_zaful_recommend.item_info_android_country 
 where 
     item_id is not null 
     and item_id<>'';
-    
+	
 "
