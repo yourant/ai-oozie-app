@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coordinator-app name="feature_items_base_info_ods"
+<coordinator-app name="feature_items_v2_2_ods"
 	frequency="${coord:days(1)}" start="${start_date}" end="${end_date}"
 	timezone="Etc/UTC" xmlns="uri:oozie:coordinator:0.2">
 	<controls>
@@ -29,7 +29,7 @@
 		</dataset>
 		<dataset name="wdout" frequency="${coord:days(1)}"
 			initial-instance="2018-03-30T00:20Z" timezone="Etc/UTC">
-			<uri-template>${YEAR}${MONTH}${DAY}</uri-template>
+			<uri-template>${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
 		<dataset name="input_data01" frequency="${coord:days(1)}"
@@ -75,7 +75,7 @@
 			<instance>${coord:current(-1)}</instance>
 		</data-out>
 		<data-out name="wdate" dataset="wdout">
-  		    <instance>${coord:current(-14)}</instance>
+  		    <instance>${coord:current(-1)}</instance>
   	    </data-out>
 	</output-events>
 
@@ -100,7 +100,7 @@
 					<value>${coord:dataOut('date')}</value>
 				</property>
 				<property>
-					<name>ADD_TIME_W</name>
+					<name>DATE_W</name>
 					<value>${coord:dataOut('wdate')}</value>
 				</property>
 			</configuration>
