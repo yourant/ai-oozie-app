@@ -1,0 +1,85 @@
+<workflow-app name="ai_feature_items_base_info_wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="hiveql" />
+
+    <action name="hiveql">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  	<name>YEAR</name>
+				  	<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+            	</property>
+            </configuration>
+            <script>feature_items_base_info.q</script>
+			<param>DATE=${YEAR}${MONTH}${DAY}</param>
+			<param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+        </hive>
+        <ok to="succeeded"/>
+        <error to="failed_mail"/>
+    </action> 
+
+     <action name="succeeded">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  	<name>YEAR</name>
+				  	<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+            	</property>
+			</configuration>
+			<main-class>com.glbg.algo.MonitorRequest</main-class>
+			<arg>http://172.31.27.16:8077/monitor/feature/feature_items_base_info</arg>
+			<arg>{"cmd_type":"feature_items_base_info_updated","day":"${DAY}","month":"${MONTH}","year":"${YEAR}"}</arg>
+		</java>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+
+  
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>pangjiaming@globalegrow.com</to>
+			<subject>ai_feature_items_base_info_wf failed</subject>
+			<body>ai_feature_items_base_info_wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>

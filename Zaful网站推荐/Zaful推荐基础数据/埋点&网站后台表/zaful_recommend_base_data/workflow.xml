@@ -136,6 +136,7 @@
             <arg>string,string,string,string,string,string,string</arg>
             <arg>etl_date</arg>
 			<arg>${YEAR}${MONTH}${DAY}</arg>
+			<arg>DeleteHistoryData</arg>
 		</java>
 		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />

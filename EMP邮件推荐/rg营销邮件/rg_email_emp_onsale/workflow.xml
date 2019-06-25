@@ -56,7 +56,7 @@
             <arg>user_id,country_code</arg>
             <arg>int,string</arg>
             <arg>etl_date</arg>
-            <arg>none</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
 		</java>
 		<ok to="finished2mongodb" />
 		<error to="failed_mail" />
@@ -96,7 +96,8 @@
             <arg>goods_sn,cat_id</arg>
             <arg>string,string</arg>
             <arg>etl_date</arg>
-            <arg>none</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+            <arg>DeleteHistoryData</arg>
 		</java>
 		<ok to="doneflag_toredis" />
 		<error to="failed_mail" />

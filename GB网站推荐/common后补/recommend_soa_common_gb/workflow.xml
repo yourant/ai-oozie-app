@@ -232,7 +232,7 @@
 	</action>
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
-			<to>bigdata@globalegrow.com
+			<to>xiongjun1@globalegrow.com
 			</to>
 			<subject>recommend_soa_common_gb failed</subject>
 			<body>recommend_soa_common_gb failed ;${timestamp()} </body>

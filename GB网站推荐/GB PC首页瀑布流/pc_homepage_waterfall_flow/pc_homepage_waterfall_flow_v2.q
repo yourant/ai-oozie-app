@@ -282,6 +282,9 @@ INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_order_7_tmp SELECT
 	0
 FROM
 	dw_gearbest_recommend.goods_order_his
+WHERE
+	date BETWEEN '${DAYWEEK}'
+	AND '${DATE}'
 GROUP BY
 	good_sn,
 	pipeline_code

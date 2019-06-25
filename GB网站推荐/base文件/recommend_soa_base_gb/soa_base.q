@@ -754,8 +754,21 @@ GROUP BY
     good_sn,
     node2;
 	
-	
-	
+
+--之前从mongodb导入商品分类到dw_gearbest_recommend.goods_category_level，现为兼容以前代码，从ods获取覆盖
+INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_category_level
+SELECT 
+	id, 
+	r_path,
+	level_1,
+	level_2,
+	level_3,
+	level_4,
+	level_5,
+	level_cnt 
+FROM 
+	ods.ods_o_gearbest_bigdata_goods_category_level 
+WHERE day='${DATE}';
 	
 	
 INSERT OVERWRITE TABLE apl_sku_third_catgory_fact
