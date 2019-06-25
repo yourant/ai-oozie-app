@@ -1,0 +1,55 @@
+INSERT OVERWRITE TABLE dw_zaful_recommend.zaful_od_u_map
+SELECT
+  m.glb_od,
+  m.glb_u
+from
+  (
+    SELECT
+      glb_od,
+      glb_u
+    FROM
+      dw_zaful_recommend.zaful_od_u_map
+    union all
+    SELECT
+      glb_od,
+      glb_u
+    FROM
+      stg.zf_pc_event_info
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+      AND glb_u rlike '^[0-9]+$'
+  ) m
+GROUP BY
+  m.glb_od,
+  m.glb_u
+;
+
+
+
+
+
+INSERT OVERWRITE TABLE dw_gearbest_report.gb_od_u_map
+SELECT
+  m.glb_od,
+  m.glb_u
+from
+  (
+    SELECT
+      glb_od,
+      glb_u
+    FROM
+      dw_gearbest_report.gb_od_u_map
+    union all
+    SELECT
+      glb_od,
+      glb_u
+    FROM
+      stg.gb_pc_event_info
+    WHERE
+      concat_ws('-', year, month, day) = '${ADD_TIME}'
+      AND glb_u rlike '^[0-9]+$'
+  ) m
+GROUP BY
+  m.glb_od,
+  m.glb_u
+;

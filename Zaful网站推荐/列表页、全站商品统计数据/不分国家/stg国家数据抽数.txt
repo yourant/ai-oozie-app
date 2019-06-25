@@ -1,0 +1,12 @@
+create table if not exists dw_zaful_recommend.ods_zaful_eload_region(
+ region_id                  int       comment '',
+ region_code               STRING       comment '',
+ region_name                STRING       comment ''
+ )
+ ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\n' STORED AS TEXTFILE
+ ;               
+ 
+ 
+ insert overwrite table dw_zaful_recommend.ods_zaful_eload_region
+ select region_id,region_code,region_name from stg.zaful_eload_region group by region_id,region_code,region_name
+ 
