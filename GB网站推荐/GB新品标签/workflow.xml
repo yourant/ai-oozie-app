@@ -158,7 +158,7 @@
             <arg>apl_result_gb_new_product,apl_result_gb_new_product_current_cat,apl_result_gb_new_product_parent_cat</arg>
             <arg>dw_gearbest_recommend.gb_new_product_backup_current_tmp,dw_gearbest_recommend.gb_new_product_backup_parent_tmp</arg>
 			<arg>新品-1,新品-2,新品-3,新品-4</arg>
-            <arg>4500,3000,2000,500</arg>
+            <arg>1200,800,500,100</arg>
         </spark>  
 		<ok to="label_sku_hbase_cleaner"/>
         <error to="failed_mail"/>
