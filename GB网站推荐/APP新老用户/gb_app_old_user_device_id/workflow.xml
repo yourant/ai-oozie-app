@@ -1,0 +1,110 @@
+<workflow-app name="gb_app_old_user_device_id_ninety_day-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
+	<start to="gb_app_old_user_device_id_ninety_day_hive" />
+    <action name="gb_app_old_user_device_id_ninety_day_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>gb_app_old_user_device_id_ninety_day.q</script>
+            <param>ADD_TIME=${ADD_TIME}</param>
+            <param>ADD_TIME_W=${ADD_TIME_W}</param>
+        </hive>
+        <ok to="gb_app_old_user_device_id_ninety_day_toredisself"/>
+        <error to="failed_mail"/>
+    </action> 
+    <action name="gb_app_old_user_device_id_ninety_day_toredisself">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HiveTableResult2Redis2self(gb_app_old_user_device_id_ninety_day)</name> 
+            <class>com.glbg.ai.recommend_gb.HiveTableResult2Redis2self</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_app_old_user_device_id_ninety_day/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 6g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.kryoserializer.buffer.max=256m --conf spark.kryoserializer.buffer=64m --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>dw_gearbest_recommend.gb_app_old_user_device_id_ninety_day</arg>
+			<arg>gb_app_old_user_device_id_ninety_day</arg>
+        </spark> 
+        <ok to="gb_app_old_user_device_id_ninety_day_toredisai"/>
+        <error to="failed_mail"/>
+    </action>
+	<action name="gb_app_old_user_device_id_ninety_day_toredisai">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>HiveTableResult2Redis2Ai(gb_app_old_user_device_id_ninety_day)</name> 
+            <class>com.glbg.ai.recommend_gb.HiveTableResult2Redis2Ai</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_gearbest_recommend/gb_app_old_user_device_id_ninety_day/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
+            <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 6g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.kryoserializer.buffer.max=256m --conf spark.kryoserializer.buffer=64m --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
+			<arg>dw_gearbest_recommend.gb_app_old_user_device_id_ninety_day</arg>
+			<arg>gb_app_old_user_device_id_ninety_day</arg>
+        </spark> 
+        <ok to="end"/>
+        <error to="failed_mail"/>
+	</action>	
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>zhanrui@globalegrow.com</to>
+			<subject>gb_app_old_user_device_id_ninety_day-wf failed</subject>
+			<body>gb_app_old_user_device_id_ninety_day-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+</workflow-app>
