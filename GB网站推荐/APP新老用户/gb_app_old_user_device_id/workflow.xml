@@ -53,7 +53,7 @@
 			<arg>dw_gearbest_recommend.gb_app_old_user_device_id_ninety_day</arg>
 			<arg>gb_app_old_user_device_id_ninety_day</arg>
         </spark> 
-        <ok to="gb_app_old_user_device_id_ninety_day_toredisai"/>
+        <ok to="end"/>
         <error to="failed_mail"/>
     </action>
 	<action name="gb_app_old_user_device_id_ninety_day_toredisai">
