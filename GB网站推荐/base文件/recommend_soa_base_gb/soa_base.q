@@ -15,6 +15,7 @@ SET hive.merge.size.per.task=256000000;
 SET hive.exec.parallel = true; 
 set hive.support.concurrency=false;
 set hive.auto.convert.join=false;
+set hive.vectorized.execution.enabled=false; 
 USE  dw_gearbest_recommend;
 
 CREATE TABLE IF NOT EXISTS goods_info_mid1(
