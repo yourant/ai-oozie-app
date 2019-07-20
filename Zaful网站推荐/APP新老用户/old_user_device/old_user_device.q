@@ -43,6 +43,7 @@ FROM
 			AND '${ADD_TIME}'
 			AND site = 'zaful'
 	) x
+	where x.appsflyer_device_id is not null
 ;
 
 
