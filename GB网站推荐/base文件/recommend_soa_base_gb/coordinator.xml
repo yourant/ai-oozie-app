@@ -37,10 +37,18 @@
 			<uri-template>/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_proj_trigger/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
 			<done-flag></done-flag>
 		</dataset>
+		<dataset name="input_data02" frequency="${coord:days(1)}"
+			initial-instance="2018-03-16T00:00Z" timezone="Etc/UTC">
+			<uri-template>/bigdata/ods/sqoop/gb/ods_m_gearbest_gb_goods_tables_job02/done_flag/${YEAR}-${MONTH}-${DAY}</uri-template>
+			<done-flag></done-flag>
+		</dataset>
 	</datasets>
 	
 	<input-events>
 		<data-in name="input01" dataset="input_data01">
+			<instance>${coord:current(0)}</instance>
+		</data-in>
+		<data-in name="input02" dataset="input_data02">
 			<instance>${coord:current(0)}</instance>
 		</data-in>
 	</input-events>
@@ -88,7 +96,7 @@
 					<value>${coord:dataOut('today')}</value>
 				</property>
 				<property>
-                    <name>STARTTIME</name>
+                	<name>STARTTIME</name>
 					<value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd HH:mm:ss")}</value>					
                 </property>
 			</configuration>

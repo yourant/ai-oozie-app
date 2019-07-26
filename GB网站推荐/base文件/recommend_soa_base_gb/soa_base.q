@@ -82,9 +82,11 @@ FROM(
 		t6.pipeline_code,
 		t1.url_title
 	FROM
-		stg_gb_goods.goods_info t1
+		--stg_gb_goods.goods_info t1
+		( select good_sn,goods_spu,goods_web_sku,shop_code,brand_code,url_title from ods.ods_m_gearbest_gb_goods_goods_info where dt='${DATE}') t1
 	LEFT JOIN
-		stg_gb_goods.goods_info_extend t2
+		--stg_gb_goods.goods_info_extend t2
+		( select good_sn,goods_status,first_up_time,v_wh_code from ods.ods_m_gearbest_gb_goods_goods_info_extend_s where dt='${DATE}') t2
 	ON
 		t1.good_sn = t2.good_sn
 	LEFT JOIN
@@ -213,11 +215,13 @@ FROM(
 	FROM
 		stg.gb_goods_goods_info t1
 	JOIN
-		stg_stock.virtual_really_warehouse_relation t2
+		--stg_stock.virtual_really_warehouse_relation t2
+		( select v_wh_code,r_wh_code,is_public from ods.ods_m_gearbest_stock_new_virtual_really_warehouse_relation where dt='${DATE}' ) t2
 	ON
 		t1.v_wh_code = t2.v_wh_code
 	JOIN 
-		stg_stock.goods_stock_warehouse_relation t3
+		--stg_stock.goods_stock_warehouse_relation t3
+		( select good_sn,r_wh_code,public_stock from ods.ods_m_gearbest_stock_new_goods_stock_warehouse_relation where dt='${DATE}' ) t3
 	ON
 		t1.good_sn = t3.good_sn AND t2.r_wh_code = t3.r_wh_code
 	WHERE
@@ -232,11 +236,13 @@ FROM(
 	FROM
 		stg.gb_goods_goods_info t1
 	JOIN
-		stg_stock.virtual_really_warehouse_relation t2
+		--stg_stock.virtual_really_warehouse_relation t2
+		( select v_wh_code,r_wh_code,is_public from ods.ods_m_gearbest_stock_new_virtual_really_warehouse_relation where dt='${DATE}' ) t2
 	ON
 		t1.v_wh_code = t2.v_wh_code
 	JOIN
-		stg_stock.goods_stock_warehouse_relation t3
+		--stg_stock.goods_stock_warehouse_relation t3
+		( select good_sn,r_wh_code,private_stock from ods.ods_m_gearbest_stock_new_goods_stock_warehouse_relation where dt='${DATE}' ) t3
 	ON
 		t1.good_sn = t3.good_sn AND t2.r_wh_code = t3.r_wh_code
 	WHERE
@@ -755,7 +761,6 @@ GROUP BY
     good_sn,
     node2;
 	
-
 --之前从mongodb导入商品分类到dw_gearbest_recommend.goods_category_level，现为兼容以前代码，从ods获取覆盖
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_category_level
 SELECT 
