@@ -318,7 +318,8 @@ LEFT JOIN
 		good_sn,
 		count(*) num
 	FROM
-		stg_gb_member.mem_favorites
+		--stg_gb_member.mem_favorites
+		ods.ods_m_gearbest_gb_member_mem_favorites where dt='${DATE}'
 	GROUP BY
 		good_sn
 		) t4
