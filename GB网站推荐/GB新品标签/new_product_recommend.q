@@ -35,7 +35,7 @@ ON
     m.good_sn = n.good_sn
 --T+1过滤----过滤特殊分类
 WHERE
-	m.stock_qty > 0 AND m.goods_status = 2 and m.id <> 12571;
+	m.is_virtual = 1 or (m.stock_qty > 0 AND m.goods_status = 2 and m.id <> 12571);
 
 --各分类数据统计，取当前分类商品
 INSERT overwrite TABLE dw_gearbest_recommend.gb_new_product_backup_current_tmp  SELECT
