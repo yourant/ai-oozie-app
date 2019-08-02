@@ -1,0 +1,67 @@
+<workflow-app name="history_data_delete-wd" xmlns="uri:oozie:workflow:0.5">
+	<start to="history_data_delete" />
+	    <action name="history_data_delete">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME</name>
+				  <value>${ADD_TIME}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME_W</name>
+				  <value>${ADD_TIME_W}</value>
+				</property>
+            </configuration>
+            <script>history_data_delete.q</script>
+			 <param>YEAR=${YEAR}</param>
+			 <param>MONTH=${MONTH}</param>
+			 <param>DAY=${DAY}</param>
+			 <param>ADD_TIME=${ADD_TIME}</param>
+			 <param>ADD_TIME_W=${ADD_TIME_W}</param>
+        </hive>
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action> 
+
+
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>15720612681@163.com</to>
+			<subject>zaful_app_source_data_from_list_global failed</subject>
+			<body>zaful_app_source_data_from_list_global-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

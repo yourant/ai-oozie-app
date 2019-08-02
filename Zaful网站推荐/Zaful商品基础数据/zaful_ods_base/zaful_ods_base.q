@@ -509,6 +509,17 @@ FROM
 WHERE
 	dt = '${DATE}'
 AND is_show = 1
+UNION  ALL
+SELECT
+	goods_id,
+	shop_price,
+	'ZFMX01' AS pipelinecode,
+	'es' AS lang
+FROM
+	ods.ods_m_zaful_zaful_db_eload_goods_pipeline_zfmx01 
+WHERE
+	dt = '${DATE}'
+AND is_show = 1
 ;
 
 

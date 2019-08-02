@@ -3,8 +3,20 @@
 --@desc  瀑布流置顶商品
 
 SET mapred.job.name='gb_app_homepage_trending_rec';
-
+SET mapred.max.split.size=128000000;
+SET mapred.min.split.size=128000000;
+SET mapred.min.split.size.per.node=128000000;
+SET mapred.min.split.size.per.rack=128000000;
+SET hive.exec.reducers.bytes.per.reducer = 128000000;
+SET hive.merge.mapfiles=true;
+SET hive.merge.mapredfiles= true;
+SET hive.merge.size.per.task=256000000;
+SET hive.exec.parallel = true; 
 set mapred.job.queue.name=root.ai.offline;
+
+set hive.support.concurrency=false;
+
+set hive.auto.convert.join=false;
 
 USE dw_gearbest_recommend;
 
@@ -45,7 +57,7 @@ FROM(
 		FROM
 			stg.gb_order_order_info
 		WHERE
-			from_unixtime(created_time, 'yyyyMMdd') = ${DATE}
+			from_unixtime(created_time+8*3600, 'yyyyMMdd') = ${DATE}
 		)b
 	ON
 		a.order_sn = b.order_sn
@@ -74,7 +86,7 @@ JOIN(
 		FROM
 			stg.gb_order_order_info
 		WHERE
-			from_unixtime(created_time, 'yyyyMMdd') > ${DAY2WEEK}
+			from_unixtime(created_time+8*3600, 'yyyyMMdd') > ${DAY2WEEK}
 		)b
 	ON
 		a.order_sn = b.order_sn
@@ -107,7 +119,7 @@ JOIN
 		FROM
 			stg.gb_order_order_info
 		WHERE
-			from_unixtime(created_time, 'yyyyMMdd') = ${DAYWEEK}
+			from_unixtime(created_time+8*3600, 'yyyyMMdd') = ${DAYWEEK}
 		)b
 	ON
 		a.order_sn = b.order_sn
@@ -361,7 +373,6 @@ ON
 	t1.pipeline_code = t2.pipeline_code and t1.lang = t2.lang	
 ;
 
-
 INSERT OVERWRITE TABLE gb_app_homepage_result_bf 
 SELECT
 	t1.id tab_id,
@@ -432,32 +443,8 @@ FROM(
 	ON
 		b.cat_ids = c.cat_id and a.pipeline_code = c.pipeline_code
 	)t1
-JOIN(
-	select
-		t3.good_sn,
-		t3.pipeline_code,
-		t3.goods_web_sku,
-		t3.good_title,
-		t3.id ,
-		t3.lang,
-		t3.v_wh_code,
-		t3.total_num,
-		t3.avg_score,
-		t3.shop_price,
-		t3.total_favorite,
-		t3.stock_qty,
-		t3.img_url,
-		t3.grid_url,
-		t3.thumb_url,
-		t3.thumb_extend_url,
-		t3.url_title
-	FROM
-		goods_info_result_uniq t3
-	join
-		pipeline_language_map t4
-	ON
-		t3.pipeline_code = t4.pipeline_code AND t4.lang = t3.lang
-	)t3
+JOIN
+	goods_info_result_uniqlang t3
 ON
 	t1.pipeline_code = t3.pipeline_code AND t1.lang = t3.lang and t1.goods_sn = t3.good_sn;
 	
@@ -1421,11 +1408,9 @@ JOIN
 ON
 	t1.good_sn = t2.good_sn
 JOIN
-	stg_gb_goods.goods_pipeline_relation t6
+	--stg_gb_goods.goods_pipeline_relation t6
+	(select good_sn, pipeline_code from ods.ods_m_gearbest_gb_goods_goods_pipeline_relation where dt='${DATE}') t6
 ON
 	t1.good_sn = t6.good_sn AND t1.pipeline_code = t6.pipeline_code) tmp
 WHERE
 	flag = 1;
-
-
-	

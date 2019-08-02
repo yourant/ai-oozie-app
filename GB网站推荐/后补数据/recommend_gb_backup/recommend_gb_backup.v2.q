@@ -70,8 +70,71 @@ SET hive.merge.size.per.task=256000000;
  
 
 --过滤网采商品/禁售商品
+DROP TABLE dw_gearbest_recommend.goods_info_result_uniqlang_filtered;
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_uniqlang_filtered (
+	good_sn            string        COMMENT '商品SKU',
+	goods_spu          string        COMMENT '商品SPU',
+	goods_web_sku      string        COMMENT '商品webSku',
+	shop_code          bigint        COMMENT '商品店铺CODE',
+	goods_status       int           COMMENT '商品状态',
+	brand_code         string        COMMENT '品牌CODE',
+	first_up_time      bigint        COMMENT '商品首次上架时间',
+	v_wh_code          int           COMMENT '商品虚拟销售', 
+	shop_price         double        COMMENT '本店售价',
+	id                 int           COMMENT '分类ID',
+	level_cnt          int           COMMENT 'SKU所属分类等级',
+	level_1            int           COMMENT '商品对应一级分类',
+	level_2            int           COMMENT '商品对应二级分类',
+	level_3            int           COMMENT '商品对应三级分类',
+	level_4            int           COMMENT '商品对应四级分类',
+	good_title         string        COMMENT '商品title',
+	img_url            string        COMMENT '产品图url',
+	grid_url           string        COMMENT 'grid图url',
+	thumb_url          string        COMMENT '缩略图url',
+	thumb_extend_url   string        COMMENT '商品图片',
+	lang               string        COMMENT '语言',
+	stock_qty          bigint        COMMENT '商品库存',
+	avg_score          decimal(2,1)  COMMENT '商品评分数',
+	total_num          bigint        COMMENT '商品评论数量',
+	total_favorite     bigint        COMMENT '商品收藏数量',
+	pipeline_code      string        COMMENT '商品销售渠道编码',
+	url_title          string        COMMENT '静态页面文件标题',
+	is_virtual           int        COMMENT '是否虚拟 0：真实，1：虚拟'
+	)
+COMMENT 'goods_info_result_uniqlang 过滤网采商品/禁售商品'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
 INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_uniqlang_filtered  SELECT
-	n.*
+	n.good_sn                 ,
+	n.goods_spu              ,
+	n.goods_web_sku       ,
+	n.shop_code              ,
+	n.goods_status           ,
+	n.brand_code             ,
+	n.first_up_time          ,
+	n.v_wh_code             ,
+	n.shop_price              ,
+	n.id                          ,
+	n.level_cnt                ,
+	n.level_1                   ,
+	n.level_2                   ,
+	n.level_3                   ,
+	n.level_4                   ,
+	n.good_title               ,
+	n.img_url                  ,
+	n.grid_url                  ,
+	n.thumb_url               ,
+	n.thumb_extend_url    ,
+	n.lang                       ,
+	n.stock_qty                ,
+	n.avg_score               ,
+	n.total_num               ,
+	n.total_favorite          ,
+	n.pipeline_code          ,
+	n.url_title                  ,
+	n.is_virtual
 FROM
 	dw_gearbest_recommend.goods_info_result_uniqlang n
 WHERE
@@ -535,11 +598,4 @@ WHERE
 ON t1.good_sn = t3.good_sn
 AND t1.pipeline_code = t3.pipeline_code
 AND t1.lang = t3.lang
-;
-
-
-
-
-   
-     
-                  
+;                

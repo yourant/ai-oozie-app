@@ -1,4 +1,4 @@
-<workflow-app name="zf_old_user_device-wf" xmlns="uri:oozie:workflow:0.5">
+<workflow-app name="zf_old_user_device-wf_SNB25641_3" xmlns="uri:oozie:workflow:0.5">
 	<start to="zf_old_user_device_hive" />
     <action name="zf_old_user_device_hive">
         <hive xmlns="uri:oozie:hive-action:0.2">
@@ -47,7 +47,7 @@
             <master>yarn</master>
             <mode>cluster</mode>
             <name>CommonResult2Redis(old_user_device)</name> 
-            <class>com.glbg.ai.recommend_gb.CommonResult2Redis</class> 
+            <class>com.glbg.ai.recommend_gb.CommonResult2Redis2Redis</class> 
             <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/dw_zaful_recommend/old_user_device/lib/recommend-gb-1.0-SNAPSHOT-jar-with-dependencies.jar</jar> 
             <spark-opts>--files hdfs://glbgnameservice/user/oozie/share/conf/hive-site.xml --queue root.ai.offline --executor-memory 6g --driver-memory 2g --driver-cores 2 --num-executors 1 --executor-cores 1 --driver-java-options -XX:MaxPermSize=512m --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.kryoserializer.buffer.max=256m --conf spark.kryoserializer.buffer=64m --conf spark.storage.memoryFraction=0.05 --conf spark.shuffle.memoryFraction=0.75 --conf spark.sql.shuffle.partitions=20 --conf spark.default.parallelism=20</spark-opts> 
 			<arg>dw_zaful_recommend.old_user_device</arg>
@@ -58,7 +58,7 @@
     </action>
 	<action name="failed_mail">
 		<email xmlns="uri:oozie:email-action:0.2">
-			<to>zhanrui@globalegrow.com</to>
+			<to>zhangyuchao@globalegrow.com</to>
 			<subject>zf_old_user_device-wf failed</subject>
 			<body>zf_old_user_device-wf daily stat failed!
                   Stat DATE:${timestamp()},

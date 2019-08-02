@@ -15,6 +15,7 @@ SET hive.merge.size.per.task=256000000;
 SET hive.exec.parallel = true; 
 set hive.support.concurrency=false;
 set hive.auto.convert.join=false;
+set hive.vectorized.execution.enabled=false; 
 USE  dw_gearbest_recommend;
 
 CREATE TABLE IF NOT EXISTS goods_info_mid1(
@@ -81,9 +82,11 @@ FROM(
 		t6.pipeline_code,
 		t1.url_title
 	FROM
-		stg_gb_goods.goods_info t1
+		--stg_gb_goods.goods_info t1
+              ( select good_sn,goods_spu,goods_web_sku,shop_code,brand_code,url_title from ods.ods_m_gearbest_gb_goods_goods_info where dt='${DATE}') t1
 	LEFT JOIN
-		stg_gb_goods.goods_info_extend t2
+		--stg_gb_goods.goods_info_extend t2
+             ( select good_sn,goods_status,first_up_time,v_wh_code from ods.ods_m_gearbest_gb_goods_goods_info_extend_s where dt='${DATE}') t2
 	ON
 		t1.good_sn = t2.good_sn
 	LEFT JOIN
@@ -186,64 +189,100 @@ WHERE
 	
 	
 	
-CREATE TABLE IF NOT EXISTS goods_info_mid3(
+DROP TABLE dw_gearbest_recommend.goods_info_mid3;
+
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_mid3(
 	good_sn            string     COMMENT '商品SKU',
-	v_wh_code          int        COMMENT '商品虚拟销售仓',
-	stock_qty          bigint     COMMENT '商品库存'
+	v_wh_code        int        COMMENT '商品虚拟销售仓',
+	stock_qty          bigint     COMMENT '商品库存',
+	is_virtual           int        COMMENT '是否虚拟 0：真实，1：虚拟'
 	)
 COMMENT '商品信息中间表3（库存）'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
 LINES TERMINATED BY '\n'                                                                                          
 STORED AS TEXTFILE;
 
-
-INSERT OVERWRITE TABLE goods_info_mid3
+DROP TABLE  dw_gearbest_recommend.tmp_goods_info_mid3_tmp;
+--4 min
+CREATE TABLE dw_gearbest_recommend.tmp_goods_info_mid3_tmp AS
+SELECT
+	tmp1.good_sn,
+	tmp1.v_wh_code,
+	tmp1.r_wh_code,
+	tmp1.is_public,
+	tmp2.is_virtual
+FROM
+	(
+		SELECT
+			t1.good_sn,
+			t1.v_wh_code,
+			t2.r_wh_code,
+			t2.is_public
+		FROM
+			stg.gb_goods_goods_info t1
+		JOIN
+			( select v_wh_code,r_wh_code,is_public from ods.ods_m_gearbest_stock_new_virtual_really_warehouse_relation where dt='${DATE}' ) t2
+		ON
+			t1.v_wh_code = t2.v_wh_code	
+	) tmp1
+LEFT JOIN 
+	( select r_wh_code,good_sn,is_virtual from ods.ods_m_gearbest_gb_goods_goods_stock_type where dt='${DATE}' ) tmp2
+ON  tmp1.good_sn = tmp2.good_sn AND tmp1.r_wh_code = tmp2.r_wh_code;
+--7min
+INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_info_mid3
 SELECT
 	t.good_sn,
 	t.v_wh_code,
-	SUM(t.stock_qty)
+	SUM(t.stock_qty),
+	t.is_virtual
 FROM(
-	SELECT
-		t1.good_sn,
-		t1.v_wh_code,
-		t2.r_wh_code,
-		t2.is_public,
-		t3.public_stock  stock_qty  
-	FROM
-		stg.gb_goods_goods_info t1
-	JOIN
-		stg_stock.virtual_really_warehouse_relation t2
-	ON
-		t1.v_wh_code = t2.v_wh_code
-	JOIN 
-		stg_stock.goods_stock_warehouse_relation t3
-	ON
-		t1.good_sn = t3.good_sn AND t2.r_wh_code = t3.r_wh_code
-	WHERE
-		t2.is_public = 1
+	--情况01
+	SELECT 
+			tmp.good_sn,
+			tmp.v_wh_code,
+			tmp.r_wh_code,
+			tmp.is_public,
+			0 AS stock_qty,
+			tmp.is_virtual
+	FROM dw_gearbest_recommend.tmp_goods_info_mid3_tmp tmp 
+	WHERE tmp.is_virtual = 1
 	UNION ALL
+	--情况02
 	SELECT
-		t1.good_sn,
-		t1.v_wh_code,
-		t2.r_wh_code,
-		t2.is_public,
-		t3.private_stock stock_qty
-	FROM
-		stg.gb_goods_goods_info t1
-	JOIN
-		stg_stock.virtual_really_warehouse_relation t2
+		tmp.good_sn,
+		tmp.v_wh_code,
+		tmp.r_wh_code,
+		tmp.is_public,
+		t3.public_stock  stock_qty,
+		tmp.is_virtual		
+	FROM dw_gearbest_recommend.tmp_goods_info_mid3_tmp tmp
+	JOIN 
+		( select good_sn,r_wh_code,public_stock from ods.ods_m_gearbest_stock_new_goods_stock_warehouse_relation where dt='${DATE}' ) t3
 	ON
-		t1.v_wh_code = t2.v_wh_code
-	JOIN
-		stg_stock.goods_stock_warehouse_relation t3
-	ON
-		t1.good_sn = t3.good_sn AND t2.r_wh_code = t3.r_wh_code
+		tmp.good_sn = t3.good_sn AND tmp.r_wh_code = t3.r_wh_code
 	WHERE
-		t2.is_public = 2
+		tmp.is_public = 1 AND tmp.is_virtual = 0
+	UNION ALL
+	--情况03
+	SELECT
+		tmp.good_sn,
+		tmp.v_wh_code,
+		tmp.r_wh_code,
+		tmp.is_public,
+		t3.private_stock stock_qty,
+		tmp.is_virtual
+	FROM dw_gearbest_recommend.tmp_goods_info_mid3_tmp tmp
+	JOIN
+		( select good_sn,r_wh_code,private_stock from ods.ods_m_gearbest_stock_new_goods_stock_warehouse_relation where dt='${DATE}' ) t3
+	ON
+		tmp.good_sn = t3.good_sn AND tmp.r_wh_code = t3.r_wh_code
+	WHERE
+		tmp.is_public = 2 AND tmp.is_virtual = 0
 	) t
 GROUP BY
 	t.good_sn,
-	t.v_wh_code;
+	t.v_wh_code,
+	t.is_virtual;
 	
 	
 
@@ -311,7 +350,8 @@ LEFT JOIN
 		good_sn,
 		count(*) num
 	FROM
-		stg_gb_member.mem_favorites
+		--stg_gb_member.mem_favorites
+               ods.ods_m_gearbest_gb_member_mem_favorites where dt='${DATE}'
 	GROUP BY
 		good_sn
 		) t4
@@ -377,7 +417,7 @@ WHERE
 	
 
 	
-	
+DROP TABLE goods_info_result;	
 CREATE TABLE IF NOT EXISTS goods_info_result(
 	good_sn            string        COMMENT '商品SKU',
 	goods_spu          string        COMMENT '商品SPU',
@@ -405,7 +445,8 @@ CREATE TABLE IF NOT EXISTS goods_info_result(
 	total_num          bigint        COMMENT '商品评论数量',
 	total_favorite     bigint        COMMENT '商品收藏数量',
 	pipeline_code      string        COMMENT '商品销售渠道编码',
-	url_title          string        COMMENT '静态页面文件标题'
+	url_title          string        COMMENT '静态页面文件标题',
+	is_virtual           int        COMMENT '是否虚拟 0：真实，1：虚拟'
 	)
 COMMENT '商品属性信息表'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
@@ -440,7 +481,8 @@ SELECT
 	t4.total_num,
 	t4.total_favorite,
 	t1.pipeline_code,
-	t1.url_title
+	t1.url_title,
+	t3.is_virtual
 FROM
 	goods_info_mid1 t1
 LEFT JOIN
@@ -494,7 +536,8 @@ SELECT
 	total_num
 FROM
 	goods_info_result a;
-	
+
+DROP TABLE goods_info_result_rec;	
 CREATE TABLE IF NOT EXISTS goods_info_result_rec(
 	good_sn            string        COMMENT '商品SKU',
 	goods_spu          string        COMMENT '商品SPU',
@@ -522,7 +565,8 @@ CREATE TABLE IF NOT EXISTS goods_info_result_rec(
 	total_num          bigint        COMMENT '商品评论数量',
 	total_favorite     bigint        COMMENT '商品收藏数量',
 	pipeline_code      string        COMMENT '商品销售渠道编码',
-	url_title          string        COMMENT '静态页面文件标题'
+	url_title          string        COMMENT '静态页面文件标题',
+	is_virtual           int        COMMENT '是否虚拟 0：真实，1：虚拟'
 	)
 COMMENT '可被推荐商品属性信息表'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
@@ -557,13 +601,49 @@ SELECT
 	total_num          ,
 	total_favorite     ,
 	pipeline_code      ,
-	url_title    
+	url_title          ,
+	is_virtual   
 FROM
-	goods_info_result
+	goods_info_result;
 --业务方要求过去掉T+1过滤 ---20190508--xiongjun----
 --WHERE
 	--stock_qty > 0 AND goods_status = 2;
 
+DROP TABLE dw_gearbest_recommend.goods_info_result_uniq;
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_uniq(
+	good_sn            string        COMMENT '商品SKU',
+	goods_spu          string        COMMENT '商品SPU',
+	goods_web_sku      string        COMMENT '商品webSku',
+	shop_code          bigint        COMMENT '商品店铺CODE',
+	goods_status       int           COMMENT '商品状态',
+	brand_code         string        COMMENT '品牌CODE',
+	first_up_time      bigint        COMMENT '商品首次上架时间',
+	v_wh_code          int           COMMENT '商品虚拟销售', 
+	shop_price         double        COMMENT '本店售价',
+	id                 int           COMMENT '分类ID',
+	level_cnt          int           COMMENT 'SKU所属分类等级',
+	level_1            int           COMMENT '商品对应一级分类',
+	level_2            int           COMMENT '商品对应二级分类',
+	level_3            int           COMMENT '商品对应三级分类',
+	level_4            int           COMMENT '商品对应四级分类',
+	good_title         string        COMMENT '商品title',
+	img_url            string        COMMENT '产品图url',
+	grid_url           string        COMMENT 'grid图url',
+	thumb_url          string        COMMENT '缩略图url',
+	thumb_extend_url   string        COMMENT '商品图片',
+	lang               string        COMMENT '语言',
+	stock_qty          bigint        COMMENT '商品库存',
+	avg_score          decimal(2,1)  COMMENT '商品评分数',
+	total_num          bigint        COMMENT '商品评论数量',
+	total_favorite     bigint        COMMENT '商品收藏数量',
+	pipeline_code      string        COMMENT '商品销售渠道编码',
+	url_title          string        COMMENT '静态页面文件标题',
+	is_virtual           int        COMMENT '是否虚拟 0：真实，1：虚拟'
+	)
+COMMENT '可被推荐商品属性信息表,根据渠道语言标题产品sku分组,取shop_price按照升序取第一个'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
 
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_info_result_uniq 
 SELECT
@@ -593,7 +673,8 @@ SELECT
 	m.total_num,
 	m.total_favorite,
 	m.pipeline_code,
-	m.url_title
+	m.url_title,
+	m.is_virtual
 FROM
 	(
 		SELECT
@@ -624,6 +705,7 @@ FROM
 			total_favorite,
 			pipeline_code,
 			url_title,
+			is_virtual,
 			ROW_NUMBER () OVER (
 				PARTITION BY good_sn,
 				pipeline_code,
@@ -659,6 +741,42 @@ GROUP BY
 	lang
 	;
 
+DROP TABLE dw_gearbest_recommend.goods_info_result_uniqlang;
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_uniqlang(
+	good_sn            string        COMMENT '商品SKU',
+	goods_spu          string        COMMENT '商品SPU',
+	goods_web_sku      string        COMMENT '商品webSku',
+	shop_code          bigint        COMMENT '商品店铺CODE',
+	goods_status       int           COMMENT '商品状态',
+	brand_code         string        COMMENT '品牌CODE',
+	first_up_time      bigint        COMMENT '商品首次上架时间',
+	v_wh_code          int           COMMENT '商品虚拟销售', 
+	shop_price         double        COMMENT '本店售价',
+	id                 int           COMMENT '分类ID',
+	level_cnt          int           COMMENT 'SKU所属分类等级',
+	level_1            int           COMMENT '商品对应一级分类',
+	level_2            int           COMMENT '商品对应二级分类',
+	level_3            int           COMMENT '商品对应三级分类',
+	level_4            int           COMMENT '商品对应四级分类',
+	good_title         string        COMMENT '商品title',
+	img_url            string        COMMENT '产品图url',
+	grid_url           string        COMMENT 'grid图url',
+	thumb_url          string        COMMENT '缩略图url',
+	thumb_extend_url   string        COMMENT '商品图片',
+	lang               string        COMMENT '语言',
+	stock_qty          bigint        COMMENT '商品库存',
+	avg_score          decimal(2,1)  COMMENT '商品评分数',
+	total_num          bigint        COMMENT '商品评论数量',
+	total_favorite     bigint        COMMENT '商品收藏数量',
+	pipeline_code      string        COMMENT '商品销售渠道编码',
+	url_title          string        COMMENT '静态页面文件标题',
+	is_virtual           int        COMMENT '是否虚拟 0：真实，1：虚拟'
+	)
+COMMENT 'goods_info_result_uniq经过过滤pipeline_language_map去掉不符合的sku'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
  --商品池表更新，取pipeline_code对应的lang数据，其他多语言丢弃
  INSERT overwrite TABLE dw_gearbest_recommend.goods_info_result_uniqlang SELECT
 	n.good_sn,
@@ -687,7 +805,8 @@ GROUP BY
 	n.total_num,
 	n.total_favorite,
 	n.pipeline_code,
-	n.url_title
+	n.url_title,
+	n.is_virtual
 FROM
 	dw_gearbest_recommend.goods_info_result_uniq n
 JOIN dw_gearbest_recommend.pipeline_language_map x ON n.pipeline_code = x.pipeline_code
@@ -754,7 +873,6 @@ GROUP BY
     good_sn,
     node2;
 	
-
 --之前从mongodb导入商品分类到dw_gearbest_recommend.goods_category_level，现为兼容以前代码，从ods获取覆盖
 INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_category_level
 SELECT 

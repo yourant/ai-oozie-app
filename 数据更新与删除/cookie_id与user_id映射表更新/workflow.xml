@@ -1,0 +1,67 @@
+<workflow-app name="${ooize_jobname}" xmlns="uri:oozie:workflow:0.5">
+	<start to="hive-select" />
+
+	<!--hive查询-->
+	 <action name="hive-select">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>hive-select.q</script>
+			
+			<!--前一天时间:年-月-日 -->
+			<param>YEAR=${YEAR}</param>
+			<param>MONTH=${MONTH}</param>
+			<param>DAY=${DAY}</param>
+			
+			<!--前一天 2018-12-04 格式 -->
+			<param>DATE=${DATE}</param>
+			
+			<!--前几天 2018-12-04 格式 -->
+			<param>SUB_2_DAY=${SUB_2_DAY}</param>
+			<param>SUB_3_DAY=${SUB_3_DAY}</param>
+			<param>SUB_7_DAY=${SUB_7_DAY}</param>
+			
+			<param>ooize_jobname=${ooize_jobname}</param>
+			<param>plan_id=${plan_id}</param>
+			<param>hive_plan_target_temp_table=${hive_plan_target_temp_table}</param>
+			
+        </hive>
+		<ok to="end"/>
+        <error to="failed_mail"/>
+    </action> 
+	
+	
+  
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>${job_fial_mail}</to>
+			<subject>${ooize_jobname} failed</subject>
+			<body>${ooize_jobname} daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+  	</action>
+	
+	
+	
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  	</kill>
+	<end name="end" />
+	
+</workflow-app>

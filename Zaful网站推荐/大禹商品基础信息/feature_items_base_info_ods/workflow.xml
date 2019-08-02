@@ -1,0 +1,122 @@
+<workflow-app name="zaful_app_category_planid_hive-wd" xmlns="uri:oozie:workflow:0.5">
+	<start to="feature_items_base_info_ods_hive1" />
+
+
+	<action name="feature_items_base_info_ods_hive1">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property>
+				<property>
+				  <name>DATE</name>
+				  <value>${DATE}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME_W</name>
+				  <value>${ADD_TIME_W}</value>
+				</property>
+            </configuration>
+            <script>feature_items_base_info_ods.q</script>
+			 <param>YEAR=${YEAR}</param>
+			 <param>MONTH=${MONTH}</param>
+			 <param>DAY=${DAY}</param>
+			 <param>DATE=${DATE}</param>
+			 <param>ADD_TIME_W=${ADD_TIME_W}</param>
+        </hive>
+        <ok to="done_flag"/>
+        <error to="failed_mail"/>
+    </action> 
+
+  <action name="done_flag">
+         <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+	              <property>
+	                <name>jobTracker</name>
+	                <value>${jobTracker}</value>
+	              </property>
+	              <property>
+	                <name>nameNode</name>
+	                <value>${nameNode}</value>
+	              </property>
+				  <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                  </property>
+				  <property>
+				    <name>oozie.use.system.libpath</name>
+				    <value>true</value>
+				  </property>
+            	<property>
+					<name>DATE</name>
+					<value>${DATE}</value>
+				</property>
+				        <property>
+					<name>YEAR</name>
+					<value>${YEAR}</value>
+				</property>
+				<property>
+					<name>MONTH</name>
+					<value>${MONTH}</value>
+				</property>
+				<property>
+					<name>DAY</name>
+					<value>${DAY}</value>
+				</property>
+			</configuration>
+            <master>yarn</master>
+            <mode>cluster</mode>
+            <name>hdfs_dayutohdfs</name> 
+            <class>com.globalegrow.spark.log.hive_hive.hdfs_hdfs</class> 
+            <jar>hdfs://glbgnameservice/user/oozie/oozie-apps/hw_bigdata_dw/dw_proj/wuchao/dw_zaful_recommend/feature_items_base_info_ods/lib/zaful.app.log.spark-1.0-SNAPSHOT-test.jar</jar> 
+            <spark-opts>--queue root.ai.offline --executor-memory 4g --driver-memory 2g --driver-cores 2 --num-executors 5 --executor-cores 2</spark-opts> 
+            <arg>hdfs://glbgnameservice/user/hive/warehouse/temp_zaful_recommend.db/feature_items_base_info_ods_desc/year=${YEAR}/month=${MONTH}/day=${DAY}</arg>
+						<arg>hdfs://172.31.61.192:8020/user/hive/warehouse/dw_proj.db/dw_base_goods_info_temp/dt=${DATE}</arg>
+						<arg>3</arg>
+        </spark>  
+        <ok to="end"/>
+        <error to="failed_mail"/>
+    </action>
+
+		
+   
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>15720612681@163.com</to>
+			<subject>商品特征基础信息表</subject>
+			<body>feature_items_base_info_ods-wf daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

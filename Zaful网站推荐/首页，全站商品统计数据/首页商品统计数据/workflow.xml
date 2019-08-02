@@ -1,0 +1,103 @@
+<workflow-app name="zaful_app_statistics_result-wf" xmlns="uri:oozie:workflow:0.5">
+	<start to="zaful_app_statistics_homepage_result_to_mongodb_hive" />
+    <action name="zaful_app_statistics_homepage_result_to_mongodb_hive">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>/user/oozie/share/conf/hive-site.xml</job-xml>
+            <configuration>
+                <property>
+					<name>oozie.use.system.libpath</name>
+					<value>true</value>
+				</property>
+				<property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+                </property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME</name>
+				  <value>${ADD_TIME}</value>
+				</property>
+				<property>
+				  <name>ADD_TIME_W</name>
+				  <value>${ADD_TIME_W}</value>
+				</property>
+            </configuration>
+            <script>app_zaful_statistics_5.0.q</script>
+			 <param>YEAR=${YEAR}</param>
+			 <param>MONTH=${MONTH}</param>
+			 <param>DAY=${DAY}</param>
+			 <param>ADD_TIME=${ADD_TIME}</param>
+			 <param>ADD_TIME_W=${ADD_TIME_W}</param>
+        </hive>
+        <ok to="zaful_app_sku_statistics_to_mongodb"/>
+        <error to="failed_mail"/>
+    </action> 
+	<action name="zaful_app_sku_statistics_to_mongodb">
+		<java>
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+				  <name>YEAR</name>
+				  <value>${YEAR}</value>
+				</property>
+				<property>
+				  <name>MONTH</name>
+				  <value>${MONTH}</value>
+				</property>
+				<property>
+				  <name>DAY</name>
+				  <value>${DAY}</value>
+               </property>
+			</configuration>
+			<main-class>com.globalegrow.hadoop.hivetomongo.HiveToMongoMR</main-class>
+            <arg>/user/hive/warehouse/dw_proj.db/app_zaful_sku_statistics_country_recommend_homepage/add_time=${YEAR}-${MONTH}-${DAY}/site=zaful</arg>
+            <arg>172.31.27.16</arg>
+            <arg>27017</arg>
+            <arg>recommender_online</arg>
+            <arg>zaful_app_sku_stat_homepage</arg>
+            <arg>bigdevelp_user</arg>
+            <arg>ePVxXNZKuNbAzNOH</arg>
+            <arg>sku,platform,country_code,af_inner_mediasource,af_add_to_bag,af_view_product,af_add_to_wishlist,af_impression,add_times,sites</arg>
+            <arg>string,string,string,string,int,int,int,int,int,string</arg>
+            <arg>etl_date</arg>
+            <arg>${YEAR}${MONTH}${DAY}</arg>
+		</java>
+		<ok to="end" />
+		<error to="failed_mail" />
+	</action>
+	<action name="failed_mail">
+		<email xmlns="uri:oozie:email-action:0.2">
+			<to>wuchao@globalegrow.com</to>
+			<subject>zaful_app_statistics_result failed</subject>
+			<body>zaful_app_statistics_result daily stat failed!
+                  Stat DATE:${timestamp()},
+                  Error message:[${wf:errorMessage(wf:lastErrorNode())}].
+            </body>
+		</email>
+		<ok to="kill" />
+		<error to="kill" />
+	</action>
+	<kill name="kill">
+		<message>Job failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>
