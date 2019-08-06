@@ -52,16 +52,7 @@ SELECT
 	create_time,
 	update_time,
 	pipeline_code,
-	CASE
-	WHEN lang = 'en-gb' THEN
-		'en'
-	WHEN lang = 'en-us' THEN
-		'en'
-	WHEN lang = 'en-cbd' THEN
-		'en'
-	ELSE
-		lang
-	END AS lang,
+	lang,
 	platform,
 	tab_id,
 	flag1
@@ -79,7 +70,7 @@ from(
 		platform,
 		tab_id,
 		flag1,
-		ROW_NUMBER() OVER(PARTITION BY tab_id,pipeline_code,lang,platform,goods_sn ORDER BY update_time desc ) AS flag
+		ROW_NUMBER() OVER(PARTITION BY tab_id,pipeline_code,lang,platform,goods_sn,vcode ORDER BY update_time desc ) AS flag
 	FROM(
 		select 
 			regexp_extract(browse_product,'(.*)_(.*)',1) goods_sn,
@@ -101,8 +92,17 @@ from(
 			end_time,
 			create_time,
 			update_time,
-			pipeline_code,
-			lang,
+			pipeline_code,			
+			CASE
+			WHEN lang = 'en-gb' THEN
+				'en'
+			WHEN lang = 'en-us' THEN
+				'en'
+			WHEN lang = 'en-cbd' THEN
+				'en'
+			ELSE
+				lang
+			END AS lang,
 			platform,
 			tab_id,
 			browse_product 
@@ -201,12 +201,11 @@ FROM(
 JOIN(
 	SELECT
 		good_sn,
-		original_url
+		min(original_url) as original_url
 	FROM
 		goods_info_mid2
 	GROUP BY
-		good_sn,
-		original_url
+		good_sn
 	)t2
 ON
 	t1.good_sn = t2.good_sn;
