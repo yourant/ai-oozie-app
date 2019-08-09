@@ -288,43 +288,43 @@ goods_number              STRING         COMMENT "商品数量"
 COMMENT "类目页user-sku中间表2"
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\n' STORED AS TEXTFILE;
 
---ODS数据更新cookie-user 对应关系
-INSERT OVERWRITE TABLE dw_zaful_recommend.zaful_od_u_map
-SELECT
-  m.glb_od,
-  m.glb_u
-from
-  (
-    SELECT
-      glb_od,
-      glb_u
-    FROM
-      dw_zaful_recommend.zaful_od_u_map
-    union all
-    SELECT
-      cookie_id as glb_od,
-      user_id as glb_u
-    FROM
-      ods.ods_pc_burial_log
-    WHERE
-      concat_ws(year, month, day) = '${ADD_TIME}'
-      and site='zaful'
-      AND user_id rlike '^[0-9]+$'
-      union all
-      select
-      cookie_id as glb_od,
-      user_id as glb_u
-      from 
-      ods.ods_php_burial_log
-      where
-      concat_ws(year, month, day) = '${ADD_TIME}'
-      and site='zaful'
-      AND user_id rlike '^[0-9]+$'
-  ) m
-GROUP BY
-  m.glb_od,
-  m.glb_u
-;
+-- --ODS数据更新cookie-user 对应关系
+-- INSERT OVERWRITE TABLE dw_zaful_recommend.zaful_od_u_map
+-- SELECT
+--   m.glb_od,
+--   m.glb_u
+-- from
+--   (
+--     SELECT
+--       glb_od,
+--       glb_u
+--     FROM
+--       dw_zaful_recommend.zaful_od_u_map
+--     union all
+--     SELECT
+--       cookie_id as glb_od,
+--       user_id as glb_u
+--     FROM
+--       ods.ods_pc_burial_log
+--     WHERE
+--       concat_ws(year, month, day) = '${ADD_TIME}'
+--       and site='zaful'
+--       AND user_id rlike '^[0-9]+$'
+--       union all
+--       select
+--       cookie_id as glb_od,
+--       user_id as glb_u
+--       from 
+--       ods.ods_php_burial_log
+--       where
+--       concat_ws(year, month, day) = '${ADD_TIME}'
+--       and site='zaful'
+--       AND user_id rlike '^[0-9]+$'
+--   ) m
+-- GROUP BY
+--   m.glb_od,
+--   m.glb_u
+-- ;
 
 --中间表1：取sku,user_id
 INSERT OVERWRITE TABLE dw_zaful_recommend.zaful_pc_list_sku_user_tmp1
@@ -383,7 +383,7 @@ FROM
     FROM
       ods.ods_m_zaful_eload_order_info
     WHERE
-      dt = '${ADD_TIME}' 
+      dt = '20190804' 
       and from_unixtime(add_time + 8*3600, 'yyyyMMdd') = '${ADD_TIME}'
   ) x
   JOIN   (
@@ -394,7 +394,7 @@ FROM
   from
    ods.ods_m_zaful_eload_order_goods 
    WHERE
-      dt = '${ADD_TIME}' 
+      dt = '20190804' 
    ) p
   ON x.order_id = p.order_id
 group by

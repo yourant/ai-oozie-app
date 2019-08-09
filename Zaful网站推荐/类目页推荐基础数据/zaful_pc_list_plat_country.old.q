@@ -73,27 +73,42 @@ SELECT
     date
 FROM(
 	SELECT
-        concat(year,month,day) date,
-		get_json_object(sub_event_field_info,'$.sku') as goods_sn,
-        get_json_object(sub_event_field_info,'$.price') as price,
-        get_json_object(sub_event_field_info,'$.discount_mark') as discount_mark,
-        platform,
-        country_code,
-        regexp_extract(page_code, 'category-(.*)',1) as cat_id
-	FROM
-        ods.ods_pc_burial_log
-    lateral view explode(split(regexp_replace(regexp_extract(regexp_replace(sub_event_field,'null,',''),'^\\[(.+)\\]$$',1),'\\}\\,\\{','\\}\\;\\{'),'\\;')) table as sub_event_field_info
-    WHERE
-        concat(year,month,day) = '${ADD_TIME}'
-        and site='zaful'
-        AND behaviour_type = 'ie' 
-        --AND sub_event_field != ''  --改成not null
-        AND sub_event_field is not null
-        AND platform in ('pc','m')
-        and page_module = 'mp'
-        and page_main_type='b'
-        and (page_code like 'category-%' or get_json_object(sub_event_field, '$.p') like 'category-%')
-        
+		a.date,
+		get_json_object(a.sub_event_field,'$.sku') as goods_sn,
+        get_json_object(a.sub_event_field,'$.price') as price,
+        get_json_object(a.sub_event_field,'$.discount_mark') as discount_mark,
+        b.platform,
+        b.country_code,
+        b.cat_id
+	FROM(
+		SELECT
+			log_id,
+			concat(year,month,day) date,
+			sub_event_field
+		FROM
+			ods.ods_pc_burial_log_ubcta
+		WHERE
+			concat(year,month,day) = '${ADD_TIME}'
+            and site='zaful'
+		) a
+	JOIN(
+		SELECT
+			log_id,
+            platform,
+            country_code,
+            regexp_extract(page_code, 'category-(.*)',1) as cat_id
+		FROM
+			ods.ods_pc_burial_log
+		WHERE
+		    concat(year,month,day) = '${ADD_TIME}'
+            and site='zaful'
+            AND behaviour_type = 'ie' AND  sub_event_field != '' AND platform in ('pc','m')
+            and page_module = 'mp'
+			and page_main_type='b'
+            and page_code rlike 'category'
+		) b
+	ON
+		a.log_id = b.log_id
 	) tmp
 WHERE
 	goods_sn != '' AND goods_sn IS NOT NULL
@@ -133,7 +148,7 @@ SELECT
     date
 FROM(
 	SELECT
-        concat(year,month,day) date,
+		concat(year,month,day) date,
 		get_json_object(a.skuinfo,'$.sku') as goods_sn,
         platform,
         country_code,
@@ -141,19 +156,13 @@ FROM(
 	FROM
 		ods.ods_pc_burial_log a
 	WHERE 
-        concat(year,month,day) = '${ADD_TIME}'
+		concat(year,month,day) = '${ADD_TIME}'
         and site='zaful'
-        AND behaviour_type = 'ic' 
-        --AND  sub_event_field != '' 
-        AND platform in ('pc','m')
-        and page_module = 'mp' 
-        and sub_event_info in ('addtobag','sku')
+        AND behaviour_type = 'ic' AND  sub_event_field != '' AND platform in ('pc','m')
+        and page_module = 'mp' and sub_event_info in ('addtobag','sku')
 		and page_main_type='b'
-        and (page_code like 'category-%' or get_json_object(sub_event_field, '$.p') like 'category-%')
-        and get_json_object(a.skuinfo,'$.sku') is not null
+        and page_code rlike 'category'
 	) tmp
-WHERE
-	goods_sn != '' AND goods_sn IS NOT NULL
 GROUP BY
 	platform,
 	country_code,
@@ -187,7 +196,7 @@ SELECT
     date
 FROM(
 	SELECT
-        concat(year,month,day) date,
+		concat(year,month,day) date,
 		get_json_object(a.skuinfo,'$.sku') as goods_sn,
         get_json_object(a.skuinfo,'$.pam') as bag_count,
         platform,
@@ -196,17 +205,13 @@ FROM(
 	FROM
 		ods.ods_pc_burial_log a
 	WHERE 
-        concat(year,month,day) = '${ADD_TIME}'
+		concat(year,month,day) = '${ADD_TIME}'
         and site='zaful'
-        AND behaviour_type = 'ic' 
-        AND  sub_event_field != '' 
-        AND platform in ('pc','m')
+        AND behaviour_type = 'ic' AND  sub_event_field != '' AND platform in ('pc','m')
         and sub_event_info ='ADT'
         and get_json_object(a.sub_event_field,'$.fmd')='mp'
-        and (page_code like 'category-%' or get_json_object(sub_event_field, '$.p') like 'category-%')
+        and get_json_object(a.sub_event_field,'$.p') rlike 'category'
 	) tmp
-WHERE
-	goods_sn != '' AND goods_sn IS NOT NULL
 GROUP BY
 	platform,
 	country_code,
@@ -241,7 +246,7 @@ SELECT
     date
 FROM(
 	SELECT
-        concat(year,month,day) date,
+		concat(year,month,day) date,
 		get_json_object(a.skuinfo,'$.sku') as goods_sn,
         platform,
         country_code,
@@ -249,15 +254,13 @@ FROM(
 	FROM
 		ods.ods_pc_burial_log a
 	WHERE 
-        concat(year,month,day) = '${ADD_TIME}'
+		concat(year,month,day) = '${ADD_TIME}'
         and site='zaful'
         AND behaviour_type = 'ic' AND  sub_event_field != '' AND platform in ('pc','m')
         and sub_event_info ='ADF'
         and get_json_object(a.sub_event_field,'$.fmd')='mp'
-        and (page_code like 'category-%' or get_json_object(sub_event_field, '$.p') like 'category-%')
+        and get_json_object(a.sub_event_field,'$.p') rlike 'category'
 	) tmp
-WHERE
-	goods_sn != '' AND goods_sn IS NOT NULL
 GROUP BY
 	platform,
 	country_code,
@@ -347,15 +350,15 @@ FROM
 	FROM
 		ods.ods_pc_burial_log a
 	WHERE 
-        concat(year,month,day) BETWEEN '${ADD_TIME_W}'
+		concat(year,month,day) BETWEEN '${ADD_TIME_W}'
         AND '${ADD_TIME}'
         and site='zaful'
         AND behaviour_type = 'ic' AND  sub_event_field != '' AND platform in ('pc','m')
         and sub_event_info ='ADT'
         and get_json_object(a.sub_event_field,'$.fmd')='mp'
-        and (page_code like 'category-%' or get_json_object(sub_event_field, '$.p') like 'category-%')
+        and get_json_object(a.sub_event_field,'$.p') rlike 'category'
   ) m
-    INNER JOIN dw_zaful_recommend.zaful_od_u_map n ON m.cookie_id = n.glb_od
+  INNER JOIN dw_zaful_recommend.zaful_od_u_map n ON m.cookie_id = n.glb_od
 GROUP BY
   m.goods_sn,
   n.glb_u,
@@ -469,7 +472,7 @@ from
   INNER JOIN dw_zaful_recommend.zaful_pc_list_sku_user_tmp2 x2 ON x1.user_id = x2.user_id
   AND x1.goods_sn = x2.goods_sn
   where
-  x2.order_status not in ('0','11','13')
+  x2.order_status not in ('0','10','11','13')
 group by
   x1.plat,
   x1.country,
@@ -539,7 +542,7 @@ from
   INNER JOIN dw_zaful_recommend.zaful_pc_list_sku_user_tmp2 x2 ON x1.user_id = x2.user_id
   AND x1.goods_sn = x2.goods_sn
 where
-  x2.order_status not in ('0','11','13')
+  x2.order_status not in ('0','10','11','13')
 group by
   x1.plat,
   x1.country,
@@ -582,6 +585,7 @@ ON t1.plat = t7.plat AND t1.country = t7.country AND t1.cat_id = t7.cat_id AND t
 LEFT JOIN dw_zaful_recommend.zaful_pc_list_sales_tmp t8
 ON t1.plat = t8.plat AND t1.country = t8.country AND t1.cat_id = t8.cat_id AND t1.goods_sn = t8.goods_sn
 ;
+
 
 --将国家维度进行汇总
 INSERT OVERWRITE TABLE dw_zaful_recommend.zaful_pc_list_plat_global partition(pdate = '${ADD_TIME}')
