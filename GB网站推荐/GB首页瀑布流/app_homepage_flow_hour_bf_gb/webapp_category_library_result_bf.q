@@ -70,7 +70,7 @@ from(
 		platform,
 		tab_id,
 		flag1,
-		ROW_NUMBER() OVER(PARTITION BY tab_id,pipeline_code,lang,platform,goods_sn,vcode ORDER BY update_time desc ) AS flag
+		ROW_NUMBER() OVER(PARTITION BY tab_id,pipeline_code,lang,platform,goods_sn,vcode ORDER BY update_time ) AS flag
 	FROM(
 		select 
 			regexp_extract(browse_product,'(.*)_(.*)',1) goods_sn,
