@@ -13,7 +13,8 @@ SET hive.merge.mapfiles=true;
 SET hive.merge.mapredfiles= true;
 SET hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 SET hive.merge.size.per.task=256000000;
-SET hive.exec.parallel = true; 
+SET hive.exec.parallel = true;  
+SET hive.auto.convert.join=false;
 
 USE dw_zaful_recommend;
 
@@ -47,7 +48,7 @@ FROM(
 		goods_sn,
 		color_code,
 		cat_id,
-		if(from_unixtime(add_time,'yyyyMMdd') >= ${ADD_TIME_W},1,0) is_new
+		if(from_unixtime(add_time+8*3600,'yyyyMMdd') >= ${ADD_TIME_W},1,0) is_new
 	FROM
 		stg.zaful_eload_goods
 	WHERE
@@ -376,5 +377,24 @@ ON
 LEFT JOIN 
     ods.ods_m_zaful_eload_goods  t2 
 ON 
-    t0.goods_sn=t2.goods_sn;
+    t0.goods_sn=t2.goods_sn 
+GROUP BY 
+ t0.goods_sn,
+    t1.goods_spu,
+    t0.is_new,
+    t0.node1,
+    t0.node2,
+    t0.node3,
+    t0.node4,
+    t0.color_code,
+    t0.shop_price,
+    t0.is_more_color,
+    t0.is_priority_dispaching,
+    t0.add_time,
+    t0.review_count,
+    t0.avg_rate,
+    nvl(t1.sku_review_count,0),
+    nvl(t1.spu_review_count,0),
+    t2.goods_img,
+    t2.goods_title ;
 	
