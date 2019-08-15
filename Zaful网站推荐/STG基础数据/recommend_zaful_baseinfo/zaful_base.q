@@ -585,7 +585,7 @@ FROM(
 			FROM
 				stg.zaful_eload_order_goods
 			WHERE
-				from_unixtime(addtime,'yyyyMMdd') > ${WDATE}
+				from_unixtime(addtime+8*3600,'yyyyMMdd') > ${WDATE}
 			GROUP BY
 				goods_sn
 			)a
@@ -840,7 +840,7 @@ FROM(
 		FROM
 			stg.zaful_eload_order_goods
 		WHERE
-			from_unixtime(addtime,'yyyyMMdd') > ${WDATE}
+			from_unixtime(addtime+8*3600,'yyyyMMdd') > ${WDATE}
 		GROUP BY
 			goods_sn
 		ORDER BY
@@ -1077,6 +1077,36 @@ SELECT
 	NVL(urltitle,'')            
 FROM
 	apl_zaful_result_attr_fact;
+
+
+INSERT OVERWRITE TABLE  apl_zaful_result_attr_fact
+SELECT
+	goodssn,
+	collect_set(goodsid)[0],
+	collect_set(catid)[0]                ,
+	collect_set(goodstitle)[0]           ,
+	collect_set(goodscolor)[0]           ,
+	collect_set(goodssize)[0]           ,
+	collect_set(gridurl)[0]              ,
+	pipelinecode,
+	collect_set(shopcode)[0]             ,
+	collect_set(webgoodSn)[0]            ,
+	lang ,
+	collect_set(warecode)[0]             ,
+	collect_set(reviewcount)[0]          ,
+	collect_set(avgrate)[0]              ,
+	collect_set(shopprice)[0]            ,
+	collect_set(favoritecount)[0]        ,
+	collect_set(goodsnum)[0]             ,
+	collect_set(imgurl)[0]               ,
+	collect_set(thumburl)[0]             ,
+	collect_set(thumbextendUrl)[0]       ,
+	collect_set(urltitle)[0]            
+FROM
+	apl_zaful_result_attr_fact
+GROUP BY goodssn,pipelinecode,lang
+;
+
 
 set mapred.reduce.tasks=30;
 INSERT OVERWRITE TABLE  apl_zaful_result_attr_fact_test
