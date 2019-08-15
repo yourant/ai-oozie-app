@@ -444,7 +444,7 @@
 			<main-class>com.globalegrow.hadoop.hiveimporthbasejsonmr.HiveImportHbaseHbaseJsonRunner
 			</main-class>
 			<arg>/user/hive/warehouse/dw_gearbest_recommend.db/goods_info_result_uniqlang</arg>
-			<arg>good_sn,goodsspu,webgoodsn,shopcode,goodsstatus,brandcode,firstuptime,warecode,shopprice,id,levelcnt,level1,level2,level3,level4,goodstitle,imgurl,gridurl,thumburl,thumbextendurl,lang,stockqty,avgrate,reviewcount,favoritecount,pipeline_code,url_title</arg>
+			<arg>good_sn,goodsspu,webgoodsn,shopcode,goodsstatus,brandcode,firstuptime,warecode,shopprice,id,levelcnt,level1,level2,level3,level4,goodstitle,imgurl,gridurl,thumburl,thumbextendurl,lang,stockqty,avgrate,reviewcount,favoritecount,pipeline_code,url_title,is_virtual</arg>
 			<arg>0,20,25</arg>
 			<arg>apl_gb_goods_info</arg>
 		</java>
