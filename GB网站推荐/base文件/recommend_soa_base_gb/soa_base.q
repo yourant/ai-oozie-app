@@ -2,7 +2,7 @@
 --@date 2017年11月25日 下午 16:00
 --@desc  SOA_gb基础数据
 
-set mapred.job.queue.name=root.ai.offline; 
+SET mapreduce.job.queuename=root.ai.oozie;
 set mapred.job.name='apl_soa_base_fact';
 SET mapred.max.split.size=128000000;
 SET mapred.min.split.size=32000000;
@@ -189,7 +189,7 @@ WHERE
 	
 	
 	
-DROP TABLE dw_gearbest_recommend.goods_info_mid3;
+--DROP TABLE dw_gearbest_recommend.goods_info_mid3;
 
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_mid3(
 	good_sn            string     COMMENT '商品SKU',
@@ -202,9 +202,21 @@ ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'
 LINES TERMINATED BY '\n'                                                                                          
 STORED AS TEXTFILE;
 
-DROP TABLE  dw_gearbest_recommend.tmp_goods_info_mid3_tmp;
+--DROP TABLE  dw_gearbest_recommend.tmp_goods_info_mid3_tmp;
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.tmp_goods_info_mid3_tmp(
+	good_sn            string     COMMENT '商品SKU',
+	v_wh_code        int        COMMENT '商品虚拟销售仓',
+	r_wh_code        string     COMMENT '真实仓code',
+	is_public        int        COMMENT '是否是公有库存1公有2私有',
+	is_virtual           int        COMMENT '是否虚拟 0：真实，1：虚拟'
+	)
+COMMENT '商品信息中间表3（库存）tmp临时表'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
 --4 min
-CREATE TABLE dw_gearbest_recommend.tmp_goods_info_mid3_tmp AS
+INSERT OVERWRITE TABLE dw_gearbest_recommend.tmp_goods_info_mid3_tmp 
 SELECT
 	tmp1.good_sn,
 	tmp1.v_wh_code,
@@ -223,7 +235,7 @@ FROM
 		JOIN
 			( select v_wh_code,r_wh_code,is_public from ods.ods_m_gearbest_stock_new_virtual_really_warehouse_relation where dt='${DATE}' ) t2
 		ON
-			t1.v_wh_code = t2.v_wh_code	
+			t1.v_wh_code = t2.v_wh_code
 	) tmp1
 LEFT JOIN 
 	( select r_wh_code,good_sn,is_virtual from ods.ods_m_gearbest_gb_goods_goods_stock_type where dt='${DATE}' ) tmp2
@@ -417,7 +429,7 @@ WHERE
 	
 
 	
-DROP TABLE goods_info_result;	
+--DROP TABLE goods_info_result;	
 CREATE TABLE IF NOT EXISTS goods_info_result(
 	good_sn            string        COMMENT '商品SKU',
 	goods_spu          string        COMMENT '商品SPU',
@@ -537,7 +549,7 @@ SELECT
 FROM
 	goods_info_result a;
 
-DROP TABLE goods_info_result_rec;	
+--DROP TABLE goods_info_result_rec;	
 CREATE TABLE IF NOT EXISTS goods_info_result_rec(
 	good_sn            string        COMMENT '商品SKU',
 	goods_spu          string        COMMENT '商品SPU',
@@ -605,11 +617,9 @@ SELECT
 	is_virtual   
 FROM
 	goods_info_result;
---业务方要求过去掉T+1过滤 ---20190508--xiongjun----
---WHERE
-	--stock_qty > 0 AND goods_status = 2;
 
-DROP TABLE dw_gearbest_recommend.goods_info_result_uniq;
+
+--DROP TABLE dw_gearbest_recommend.goods_info_result_uniq;
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_uniq(
 	good_sn            string        COMMENT '商品SKU',
 	goods_spu          string        COMMENT '商品SPU',
@@ -729,6 +739,8 @@ WHEN lang = 'en-us' THEN
 	'en'
 WHEN lang = 'en-cbd' THEN
 	'en'
+WHEN lang = 'en-mik' THEN
+	'en'
 ELSE
 	lang
 END AS lang
@@ -741,7 +753,7 @@ GROUP BY
 	lang
 	;
 
-DROP TABLE dw_gearbest_recommend.goods_info_result_uniqlang;
+--DROP TABLE dw_gearbest_recommend.goods_info_result_uniqlang;
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_uniqlang(
 	good_sn            string        COMMENT '商品SKU',
 	goods_spu          string        COMMENT '商品SPU',

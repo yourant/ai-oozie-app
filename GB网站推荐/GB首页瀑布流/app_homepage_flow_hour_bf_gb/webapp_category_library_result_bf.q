@@ -100,6 +100,8 @@ from(
 				'en'
 			WHEN lang = 'en-cbd' THEN
 				'en'
+			WHEN lang = 'en-mik' THEN
+				'en'
 			ELSE
 				lang
 			END AS lang,
