@@ -181,3 +181,40 @@ FROM
   ) n
 WHERE
   spurank < 51;
+
+--最近15天热销前100数据-不按照分类是全网的
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_spu_hotsell_15days_top100
+(goods_spu STRING COMMENT '商品spu', pipeline_code STRING COMMENT '渠道编码',sellcount INT COMMENT '商品销量',spurank INT COMMENT '商品排名') 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n' STORED AS orc;
+INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_spu_hotsell_15days_top100
+SELECT
+  goods_spu,
+  pipeline_code,
+  sellcount,
+  spurank
+FROM
+  (
+    SELECT
+      m.pipeline_code,
+      m.goods_spu,
+      sellcount,
+      ROW_NUMBER() OVER(
+        PARTITION BY m.pipeline_code
+        ORDER BY
+          sellcount DESC
+      ) spurank
+    FROM
+      (
+        SELECT
+          a.pipeline_code,
+          a.goods_spu,
+          SUM(a.qty) sellcount
+        FROM
+          dw_gearbest_recommend.goods_spu_order_count_15days a
+        GROUP BY
+          a.pipeline_code,
+          a.goods_spu
+      ) m
+  ) n
+WHERE
+  spurank < 101;  

@@ -2,6 +2,7 @@
 --@date 2019年4月28日 
 --@desc  gb新品标签，按照pipelineCode_lang_catid_重复曝光序号_商品序号_sku
 
+SET mapreduce.job.queuename=root.ai.oozie;
 SET mapred.job.name=new_product_recommend;
 SET mapred.max.split.size=128000000;
 SET mapred.min.split.size=32000000;

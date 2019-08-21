@@ -154,10 +154,64 @@ FROM
   ) g
 WHERE
   spurank < 101;
---全平台收藏排序，选取top10
-CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.gb_platform_favorite_top10(goods_spu STRING COMMENT '商品spu',favorite_count INT COMMENT '商品销量',spurank INT COMMENT '商品排名',pipeline_code STRING COMMENT '渠道编码') 
+-- --全平台收藏排序，选取top10
+-- CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.gb_platform_favorite_top10(goods_spu STRING COMMENT '商品spu',favorite_count INT COMMENT '商品销量',spurank INT COMMENT '商品排名',pipeline_code STRING COMMENT '渠道编码') 
+-- ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n' STORED AS orc;
+-- INSERT OVERWRITE TABLE dw_gearbest_recommend.gb_platform_favorite_top10
+-- SELECT
+--   goods_spu,
+--   favorite_count,
+--   spurank,
+--   pipeline_code
+-- FROM
+--   (
+--     SELECT
+--       goods_spu,
+--       pipeline_code,
+--       favorite_count,
+--       ROW_NUMBER() OVER(
+--         PARTITION BY pipeline_code
+--         ORDER BY
+--           favorite_count DESC
+--       ) spurank
+--     FROM
+--       (
+--         SELECT
+--           d.goods_spu,
+--           c.pipeline_code,
+--           COUNT(1) favorite_count
+--         FROM
+--           (
+--             SELECT
+--               good_sn,
+--               pipeline_code
+--             FROM
+--               gb_member_mem_favorites
+--             WHERE
+--               create_date < UNIX_TIMESTAMP()
+--               AND create_date > UNIX_TIMESTAMP(
+--                 DATE_SUB(
+--                   FROM_UNIXTIME(UNIX_TIMESTAMP(), 'yyyy-MM-dd'),
+--                   30
+--                 ),
+--                 'yyyy-MM-dd'
+--               )
+--           ) c
+--           JOIN dw_gearbest_recommend.goods_info_mid1 d ON c.good_sn = d.good_sn
+--         GROUP BY
+--           d.goods_spu,
+--           c.pipeline_code
+--       ) f
+--   ) g
+-- WHERE
+--   spurank < 11;
+
+
+
+--全平台收藏排序，选取top30  15天内的收藏
+CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.gb_platform_favorite_top30(goods_spu STRING COMMENT '商品spu',favorite_count INT COMMENT '商品销量',spurank INT COMMENT '商品排名',pipeline_code STRING COMMENT '渠道编码') 
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n' STORED AS orc;
-INSERT OVERWRITE TABLE dw_gearbest_recommend.gb_platform_favorite_top10
+INSERT OVERWRITE TABLE dw_gearbest_recommend.gb_platform_favorite_top30
 SELECT
   goods_spu,
   favorite_count,
@@ -192,7 +246,7 @@ FROM
               AND create_date > UNIX_TIMESTAMP(
                 DATE_SUB(
                   FROM_UNIXTIME(UNIX_TIMESTAMP(), 'yyyy-MM-dd'),
-                  30
+                  15
                 ),
                 'yyyy-MM-dd'
               )
@@ -204,4 +258,4 @@ FROM
       ) f
   ) g
 WHERE
-  spurank < 11;
+  spurank < 31;

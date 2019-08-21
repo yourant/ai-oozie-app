@@ -289,6 +289,146 @@ WHERE
 ;
 
 
+--新加的新修改的
+CREATE TABLE IF NOT EXISTS apl_sale_top100_pipeline_fact_15days(
+	good_sn            string     COMMENT '推荐商品SKU',
+	webGoodSn          string     COMMENT '商品webSku',
+	pipeline_code      string     COMMENT '渠道编码',
+	goodsTitle         string     COMMENT '商品title',
+	lang               string     COMMENT '语言',
+	wareCode           int        COMMENT '仓库',
+	reviewCount        int        COMMENT '评论数',
+	avgRate            double     COMMENT '评论分',
+	shopPrice          double     COMMENT '本店售价',
+	favoriteCount      int 	      COMMENT '收藏数量',
+	goodsNum           int        COMMENT '商品库存',
+	imgUrl             string     COMMENT '产品图url',
+	gridUrl            string     COMMENT 'grid图url',
+	thumbUrl           string     COMMENT '缩略图url',
+	thumbExtendUrl     string     COMMENT '商品图片',
+	url_title          string     COMMENT '静态页面文件标题'
+	)
+COMMENT '网站热销top100 15days'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
+LINES TERMINATED BY '\n'                                                                                          
+STORED AS TEXTFILE;
+
+
+INSERT OVERWRITE TABLE apl_sale_top100_pipeline_fact_15days
+SELECT
+	good_sn,
+	goods_web_sku,
+	pipeline_code,
+	good_title,
+	lang,
+	v_wh_code,
+	total_num,
+	avg_score,
+	shop_price,
+	total_favorite,
+	stock_qty,
+	img_url,
+	grid_url,
+	thumb_url,
+	thumb_extend_url,
+	url_title
+FROM(
+	SELECT
+		good_sn,
+		goods_web_sku,
+		pipeline_code,
+		good_title,
+		lang,
+		v_wh_code,
+		total_num,
+		avg_score,
+		shop_price,
+		total_favorite,
+		stock_qty,
+		img_url,
+		grid_url,
+		thumb_url,
+		thumb_extend_url,
+		url_title,
+		ROW_NUMBER() OVER(PARTITION BY good_sn,pipeline_code,good_title,lang ORDER BY shop_price ASC) AS flag
+	FROM(
+		SELECT
+			good_sn,
+			goods_web_sku,
+			pipeline_code,
+			good_title,
+			lang,
+			v_wh_code,
+			total_num,
+			avg_score,
+			shop_price,
+			total_favorite,
+			stock_qty,
+			img_url,
+			grid_url,
+			thumb_url,
+			thumb_extend_url,
+			url_title
+		FROM(
+			SELECT
+				t2.good_sn,
+				t3.goods_web_sku,
+				t1.pipeline_code,
+				t3.good_title,
+				t3.lang,
+				t3.v_wh_code,
+				t3.total_num,
+				t3.avg_score,
+				t3.shop_price,
+				t3.total_favorite,
+				t3.stock_qty,
+				t3.img_url,
+				t3.grid_url,
+				t3.thumb_url,
+				t3.thumb_extend_url,
+				t3.url_title
+			FROM(
+				SELECT
+					goods_spu,
+					pipeline_code,
+					sellcount
+				FROM
+					--dw_gearbest_recommend.goods_spu_hotsell_15days 
+					dw_gearbest_recommend.goods_spu_hotsell_15days_top100  --新表  全网top100 无分类
+				) t1
+			JOIN
+				goods_info_mid5 t2
+			ON
+				t1.goods_spu = t2.goods_spu
+			JOIN
+				goods_info_result_rec t3
+			ON
+				t2.good_sn = t3.good_sn
+			)tmp
+		GROUP BY
+			good_sn,
+			goods_web_sku,
+			pipeline_code,
+			good_title,
+			lang,
+			v_wh_code,
+			total_num,
+			avg_score,
+			shop_price,
+			total_favorite,
+			stock_qty,
+			img_url,
+			grid_url,
+			thumb_url,
+			thumb_extend_url,
+			url_title
+		)tmp
+	)tmp
+WHERE
+	flag = 1
+;
+
+
 CREATE TABLE IF NOT EXISTS apl_topsale_category50_fact(
 	category_id        string     COMMENT '商品分类ID',
 	good_sn            string     COMMENT '商品SKU',
@@ -305,7 +445,8 @@ CREATE TABLE IF NOT EXISTS apl_topsale_category50_fact(
 	gridUrl            string     COMMENT 'grid图url',
 	thumbUrl           string     COMMENT '缩略图url',
 	thumbExtendUrl     string     COMMENT '商品图片',
-    url_title          string     COMMENT '静态页面文件标题'	
+    url_title          string     COMMENT '静态页面文件标题',
+	pipeline_code      string     COMMENT '渠道编码'   --新加的		
 	)
 COMMENT '商品分类销量top50'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
@@ -332,7 +473,8 @@ SELECT
 	grid_url,
 	thumb_url,
 	thumb_extend_url,
-	url_title
+	url_title,
+	pipeline_code  --新加的	
 FROM(
 	SELECT
 		category_id,
@@ -351,6 +493,7 @@ FROM(
 		thumb_url,
 		thumb_extend_url,
 		url_title,
+		pipeline_code,  --新加的
 		ROW_NUMBER() OVER(PARTITION BY good_sn,good_title,lang ORDER BY shop_price ASC) AS flag
 	FROM(
 		SELECT
@@ -369,7 +512,8 @@ FROM(
 			grid_url,
 			thumb_url,
 			thumb_extend_url,
-			url_title
+			url_title,
+			pipeline_code  --新加的
 		FROM(
 			SELECT
 				t1.category_id,
@@ -387,28 +531,26 @@ FROM(
 				t3.grid_url,
 				t3.thumb_url,
 				t3.thumb_extend_url,
-				t3.url_title
+				t3.url_title,
+				t1.pipeline_code  --新加的 ok
 			FROM(
 				SELECT
 					goods_spu,
 					category_id,
+					pipeline_code,--新加的
 					sellcount
 				FROM
-					goods_spu_hotsell_15days
-				WHERE
-					pipeline_code = 'GB'
+					dw_gearbest_recommend.goods_spu_hotsell_15days   
 				) t1
-			JOIN
-				goods_info_mid5 t2
-			ON
-				t1.goods_spu = t2.goods_spu
-			JOIN
-				goods_info_result_rec t3
-			ON
-				t2.good_sn = t3.good_sn
-			WHERE
-				t3.pipeline_code = 'GB'
-			)tmp
+				JOIN
+					dw_gearbest_recommend.goods_info_mid5 t2
+				ON
+					t1.goods_spu = t2.goods_spu 
+				JOIN
+					dw_gearbest_recommend.goods_info_result_rec t3
+				ON
+					t2.good_sn = t3.good_sn 
+			) tmp
 		GROUP BY
 			category_id,
 			good_sn,
@@ -425,7 +567,8 @@ FROM(
 			grid_url,
 			thumb_url,
 			thumb_extend_url,
-			url_title
+			url_title,
+			pipeline_code  --新加的
 		)tmp
 	)tmp
 WHERE

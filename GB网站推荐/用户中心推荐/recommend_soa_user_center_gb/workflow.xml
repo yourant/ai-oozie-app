@@ -96,7 +96,7 @@
             <arg>dw_gearbest_recommend</arg>
             <arg>apl_female_ymal_fact</arg>
             <arg>female_user_cental</arg>
-            <arg>category_id#lang</arg>
+            <arg>category_id#lang#pipeline_code</arg>
 		</java>
 		<ok to="apl_cart_10_fact" />
 		<error to="failed_mail" />
@@ -129,7 +129,7 @@
             <arg>dw_gearbest_recommend</arg>
             <arg>apl_cart_10_fact</arg>
             <arg>favorit_goods</arg>
-            <arg>lang</arg>
+            <arg>lang#pipeline_code</arg>
 		</java>
 		<ok to="succeeded" />
 		<error to="failed_mail" />
