@@ -2,7 +2,6 @@
 --@date 2018年10月17日 
 --@desc  gb推荐后台后补数据，按pipeline_lang_categoryid分组，每组至多50个后补商品
 
-SET mapreduce.job.queuename=root.ai.oozie;
 SET mapred.job.name=goods_backup_result;
 SET mapred.max.split.size=128000000;
 SET mapred.min.split.size=32000000;
@@ -71,7 +70,7 @@ SET hive.merge.size.per.task=256000000;
  
 
 --过滤网采商品/禁售商品
---DROP TABLE dw_gearbest_recommend.goods_info_result_uniqlang_filtered;
+DROP TABLE dw_gearbest_recommend.goods_info_result_uniqlang_filtered;
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_uniqlang_filtered (
 	good_sn            string        COMMENT '商品SKU',
 	goods_spu          string        COMMENT '商品SPU',

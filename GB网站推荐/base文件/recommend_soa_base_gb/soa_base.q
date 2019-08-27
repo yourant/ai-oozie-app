@@ -617,9 +617,7 @@ SELECT
 	is_virtual   
 FROM
 	goods_info_result;
---业务方要求过去掉T+1过滤 ---20190508--xiongjun----
---WHERE
---stock_qty > 0 AND goods_status = 2;
+
 
 --DROP TABLE dw_gearbest_recommend.goods_info_result_uniq;
 CREATE TABLE IF NOT EXISTS dw_gearbest_recommend.goods_info_result_uniq(
@@ -740,6 +738,8 @@ WHEN lang = 'en-gb' THEN
 WHEN lang = 'en-us' THEN
 	'en'
 WHEN lang = 'en-cbd' THEN
+	'en'
+WHEN lang = 'en-mik' THEN
 	'en'
 ELSE
 	lang
