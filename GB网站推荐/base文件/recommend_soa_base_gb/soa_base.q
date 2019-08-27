@@ -152,37 +152,83 @@ COMMENT '商品信息中间表2（网站展示用信息（图片、title））'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001'                                                                                   
 LINES TERMINATED BY '\n'                                                                                          
 STORED AS TEXTFILE;
-	
-INSERT OVERWRITE TABLE goods_info_mid2
-SELECT
-	t1.good_sn,
-	regexp_replace(t3.good_title,'"','\\\\"'),
-	t2.img_url,
-	t2.grid_url,
-	t2.thumb_url,
-	t2.thumb_extend_url,
-	t2.original_url,
-	t3.lang
-FROM
-	stg.gb_goods_goods_picture t2
-LEFT JOIN	
-	(SELECT
-		good_sn,
-		type,
-		version
-	FROM
-		stg.gb_goods_goods_gallery
-	WHERE
-		is_soa_use = 2 AND is_select = 1
-	) t1
-ON
-	t2.type = t1.type AND t2.version = t1.version AND t1.good_sn = t2.good_sn
-LEFT JOIN
-	stg.gb_goods_site_multi_lang_goods t3
-ON
-	t2.good_sn = t3.good_sn
-WHERE
-	t2.is_main = 1 and (t2.img_url != '' and t2.grid_url != '' and t2.thumb_url != '' and t2.thumb_extend_url != '' and t2.original_url != '');
+
+--<老逻辑，改成了下面这种方式>
+-- INSERT OVERWRITE TABLE goods_info_mid2
+-- SELECT
+-- 	t1.good_sn,
+-- 	regexp_replace(t3.good_title,'"','\\\\"'),
+-- 	t2.img_url,
+-- 	t2.grid_url,
+-- 	t2.thumb_url,
+-- 	t2.thumb_extend_url,
+-- 	t2.original_url,
+-- 	t3.lang
+-- FROM
+-- 	stg.gb_goods_goods_picture t2
+-- LEFT JOIN	
+-- 	(SELECT
+-- 		good_sn,
+-- 		type,
+-- 		version
+-- 	FROM
+-- 		stg.gb_goods_goods_gallery
+-- 	WHERE
+-- 		is_soa_use = 2 AND is_select = 1
+-- 	) t1
+-- ON
+-- 	t2.type = t1.type AND t2.version = t1.version AND t1.good_sn = t2.good_sn
+-- LEFT JOIN
+-- 	stg.gb_goods_site_multi_lang_goods t3
+-- ON
+-- 	t2.good_sn = t3.good_sn
+-- WHERE
+-- 	t2.is_main = 1 and (t2.img_url != '' and t2.grid_url != '' and t2.thumb_url != '' and t2.thumb_extend_url != '' and t2.original_url != '');
+
+--新逻辑--2019-08-27----根据version版本获取最大版本的图片
+INSERT OVERWRITE TABLE dw_gearbest_recommend.goods_info_mid2
+SELECT 
+    good_sn,
+    good_title,
+    img_url,
+    grid_url,
+    thumb_url,
+    thumb_extend_url,
+    original_url,
+    lang
+FROM(
+    SELECT
+    	t1.good_sn,
+    	regexp_replace(t3.good_title,'"','\\\\"') as good_title,
+    	t2.img_url,
+    	t2.grid_url,
+    	t2.thumb_url,
+    	t2.thumb_extend_url,
+    	t2.original_url,
+    	t3.lang,
+    	ROW_NUMBER() OVER(PARTITION BY t2.good_sn,t3.lang ORDER BY t2.version desc) AS flag 
+    FROM
+    	stg.gb_goods_goods_picture t2
+    JOIN	
+    	(SELECT
+    		good_sn,
+    		type,
+    		version
+    	FROM
+    		stg.gb_goods_goods_gallery
+    	WHERE
+    		is_soa_use = 2 AND is_select = 1
+    	) t1
+    ON
+    	t2.type = t1.type AND t2.version = t1.version AND t1.good_sn = t2.good_sn
+    JOIN
+    	stg.gb_goods_site_multi_lang_goods t3
+    ON
+    	t2.good_sn = t3.good_sn
+    WHERE
+    	t2.is_main = 1 and (t2.img_url != '' and t2.grid_url != '' and t2.thumb_url != '' and t2.thumb_extend_url != '' and t2.original_url != '')
+)t4 
+WHERE t4.flag = 1;
 
 	
 	
