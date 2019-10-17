@@ -878,10 +878,10 @@ WHERE
 				SELECT
 					sku
 				FROM
-					dw_gearbest_recommend.gb_black_gray_result
+					dw_gearbest_recommend.gb_black_gray_result_v2
 				WHERE
 					add_time = '${YEAR}-${MONTH}-${DAY}'
-				AND flag IN ('black', 'gray')
+				--AND flag IN ('black', 'gray')
 			) t
                UNION ALL
                SELECT
